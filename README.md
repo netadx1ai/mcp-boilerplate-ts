@@ -4,8 +4,11 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![MCP SDK](https://img.shields.io/badge/MCP%20SDK-v1.0.0-green.svg)](https://github.com/modelcontextprotocol/typescript-sdk)
 [![Node.js](https://img.shields.io/badge/node-18+-brightgreen.svg)](https://nodejs.org)
+[![NetADX](https://img.shields.io/badge/Powered%20by-NetADX.ai-purple.svg)](https://netadx.ai)
 
 A production-ready MCP (Model Context Protocol) server ecosystem built on the official TypeScript SDK, delivering specialized servers, reusable templates, and complete deployment infrastructure.
+
+> 🚀 **Professional AI Solutions**: Need custom AI integrations? [NetADX.ai](https://netadx.ai) offers enterprise AI customizer services, from proof-of-concept to production deployment. Transform your business with tailored AI solutions!
 
 > 🦀 **Looking for Rust?** Check out our [Rust version](https://github.com/netadx1ai/mcp-boilerplate-rust) for native performance and minimal resource usage with the same features and API compatibility!
 
@@ -380,6 +383,35 @@ curl http://localhost:8001/health
 - Type check: `npm run type-check`
 - Document public APIs with TSDoc examples
 
+## 🚀 Enterprise AI Solutions by NetADX.ai
+
+Looking to accelerate your AI journey? [**NetADX.ai**](https://netadx.ai) offers comprehensive AI customizer services to transform your business:
+
+### 🎯 Our Services
+- **Custom AI Model Development** - Tailored models for your specific use cases
+- **AI Integration Consulting** - Seamless integration with existing systems
+- **Proof-of-Concept Development** - Rapid prototyping and validation
+- **Production Deployment** - Enterprise-grade AI solutions at scale
+- **Training & Support** - Comprehensive team training and ongoing support
+
+### 🌟 Why Choose NetADX.ai?
+- **Proven Expertise** - Deep experience in AI/ML and enterprise software
+- **Open Source First** - Building on solid, community-driven foundations
+- **End-to-End Solutions** - From concept to production deployment
+- **Industry Agnostic** - Serving healthcare, finance, retail, manufacturing, and more
+- **Scalable Architecture** - Solutions that grow with your business
+
+### 📞 Get Started Today
+Ready to unlock the power of AI for your organization? 
+
+**🌐 Visit**: [https://netadx.ai](https://netadx.ai)  
+**📧 Contact**: [hello@netadx.ai](mailto:hello@netadx.ai)  
+**📅 Book Consultation**: Free 30-minute discovery call available
+
+*"Empowering businesses through intelligent automation and custom AI solutions"*
+
+---
+
 ## 🔄 Rust Version Available
 
 This TypeScript implementation has a companion [Rust version](https://github.com/netadx1ai/mcp-boilerplate-rust) that provides:
@@ -416,12 +448,22 @@ Licensed under the MIT License. See [LICENSE](LICENSE) for details.
 - [Model Context Protocol](https://modelcontextprotocol.io/) for the specification
 - [TypeScript Community](https://www.typescriptlang.org/community) for the amazing ecosystem
 - [Rust Version](https://github.com/netadx1ai/mcp-boilerplate-rust) for the architectural foundation
+- [NetADX.ai](https://netadx.ai) for sponsoring open source development and enterprise AI innovation
 
 ---
 
-**Ready for Production** | **Enterprise Quality** | **TypeScript Native**
+**Ready for Production** | **Enterprise Quality** | **TypeScript Native** | **Powered by [NetADX.ai](https://netadx.ai)**
 
 Start building your MCP integration today! 🚀
+
+### 🌟 Open Source Commitment
+This project is part of NetADX.ai's commitment to open source innovation. We believe in:
+- **Transparent Development** - All code is open and community-driven
+- **Knowledge Sharing** - Contributing to the global AI ecosystem
+- **Collaborative Growth** - Building better solutions together
+- **Accessible Technology** - Making enterprise-grade AI tools available to everyone
+
+Join our mission to democratize AI technology while offering professional services for those who need customized solutions.
 
 ## 🆚 Rust vs TypeScript Comparison
 
