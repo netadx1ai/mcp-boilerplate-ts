@@ -1,0 +1,114 @@
+{
+  "name": "mcp-boilerplate-ts",
+  "version": "0.3.0",
+  "description": "Production-ready MCP server ecosystem built on official TypeScript SDK",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "ai",
+    "llm",
+    "agents",
+    "typescript",
+    "server",
+    "boilerplate"
+  ],
+  "author": "MCP Boilerplate Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/netadx1ai/mcp-boilerplate-ts.git"
+  },
+  "homepage": "https://github.com/netadx1ai/mcp-boilerplate-ts",
+  "bugs": {
+    "url": "https://github.com/netadx1ai/mcp-boilerplate-ts/issues"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "packageManager": "npm@10.0.0",
+  "workspaces": [
+    "servers/*",
+    "templates/*",
+    "examples/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "build:production": "NODE_ENV=production npm run build",
+    "test": "npm run test --workspaces",
+    "test:coverage": "jest --coverage --passWithNoTests",
+    "test:watch": "jest --watch --passWithNoTests",
+    "lint": "eslint . --ext .ts,.js,.json --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "type-check": "tsc --noEmit",
+    "quality-check": "npm run format:check && npm run lint && npm run type-check && npm run test",
+    "dev": "npm run dev --workspace",
+    "start": "node dist/index.js",
+    "clean": "rimraf dist coverage .nyc_output && npm run clean --workspaces",
+    "prepare": "if [ -d .git ]; then husky install; fi",
+    "precommit": "lint-staged",
+    "release": "standard-version",
+    "docs:generate": "typedoc",
+    "docs:serve": "http-server docs -p 8080",
+    "security:audit": "npm audit --audit-level moderate",
+    "security:fix": "npm audit fix",
+    "deps:update": "npm-check-updates -u && npm install",
+    "deps:check": "npm-check-updates",
+    "docker:build": "docker build -t mcp-boilerplate-ts .",
+    "docker:run": "docker run -p 8000-8006:8000-8006 mcp-boilerplate-ts",
+    "k8s:deploy": "./deployment/kubernetes/deploy.sh --apply-all",
+    "monitoring:deploy": "./deployment/monitoring/deploy.sh --monitoring"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.5",
+    "@types/node": "^20.6.0",
+    "@typescript-eslint/eslint-plugin": "^6.7.0",
+    "@typescript-eslint/parser": "^6.7.0",
+    "eslint": "^8.49.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-import": "^2.28.1",
+    "eslint-plugin-jest": "^27.4.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "husky": "^8.0.3",
+    "jest": "^29.7.0",
+    "lint-staged": "^14.0.1",
+    "npm-check-updates": "^16.14.6",
+    "prettier": "^3.0.3",
+    "rimraf": "^5.0.1",
+    "standard-version": "^9.5.0",
+    "ts-jest": "^29.1.1",
+    "ts-node": "^10.9.1",
+    "typedoc": "^0.25.1",
+    "typescript": "^5.2.2",
+    "http-server": "^14.1.1"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "commander": "^11.0.0",
+    "dotenv": "^16.3.1",
+    "winston": "^3.10.0",
+    "zod": "^3.22.2"
+  },
+  "lint-staged": {
+    "*.{ts,js}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
+  },
+  "volta": {
+    "node": "20.6.0",
+    "npm": "10.0.0"
+  },
+  "type": "module",
+  "main": "dist/index.js",
+  "directories": {
+    "doc": "docs",
+    "example": "examples",
+    "test": "tests"
+  }
+}

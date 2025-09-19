@@ -1,0 +1,41 @@
+{
+  "name": "mcp-client-example",
+  "version": "1.0.0",
+  "description": "Example MCP client demonstrating integration with TypeScript boilerplate servers",
+  "type": "module",
+  "main": "dist/mcp-client-example.js",
+  "scripts": {
+    "dev": "ts-node mcp-client-example.ts",
+    "build": "tsc",
+    "start": "node dist/mcp-client-example.js",
+    "client": "npm run dev",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "mcp",
+    "client",
+    "example",
+    "typescript",
+    "integration"
+  ],
+  "author": "MCP Boilerplate Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/netadx1ai/mcp-boilerplate-ts.git",
+    "directory": "examples/client-integration"
+  }
+}
