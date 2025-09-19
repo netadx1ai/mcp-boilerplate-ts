@@ -146,9 +146,6 @@ export function isToolResult(value) {
 export function isMcpBoilerplateError(error) {
     return error instanceof McpBoilerplateError;
 }
-// =============================================================================
-// Constants
-// =============================================================================
 /**
  * Default server ports
  */

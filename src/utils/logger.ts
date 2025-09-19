@@ -732,12 +732,12 @@ export function createLogAggregator(logger: Logger) {
      */
     logStats(): void {
       // Log counters
-      for (const [event, count] of counters.entries()) {
+      for (const [event, count] of Array.from(counters.entries())) {
         logger.info('Event counter', { event, count });
       }
 
       // Log timing statistics
-      for (const [operation, durations] of timings.entries()) {
+      for (const [operation, durations] of Array.from(timings.entries())) {
         const avg = durations.reduce((sum, d) => sum + d, 0) / durations.length;
         const min = Math.min(...durations);
         const max = Math.max(...durations);

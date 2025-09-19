@@ -415,7 +415,7 @@ export class MetricsCollector extends EventEmitter {
     // Aggregate each bucket
     const dataPoints: MetricDataPoint[] = [];
     
-    for (const [bucketTime, bucketValues] of buckets) {
+    for (const [bucketTime, bucketValues] of Array.from(buckets)) {
       const aggregatedValue = this._aggregateValues(bucketValues, aggregation);
       
       dataPoints.push({
@@ -550,7 +550,7 @@ export class MetricsCollector extends EventEmitter {
   getSummary(): Record<string, MetricStats> {
     const summary: Record<string, MetricStats> = {};
     
-    for (const name of this._metrics.keys()) {
+    for (const name of Array.from(this._metrics.keys())) {
       const stats = this.getMetricStats(name);
       if (stats) {
         summary[name] = stats;
@@ -598,7 +598,7 @@ export class MetricsCollector extends EventEmitter {
   exportPrometheus(): string {
     const lines: string[] = [];
     
-    for (const [name, values] of this._metrics) {
+    for (const [name, values] of Array.from(this._metrics)) {
       const config = this._configs.get(name);
       const latest = values[values.length - 1];
       
@@ -648,7 +648,7 @@ export class MetricsCollector extends EventEmitter {
     
     if (includeHistory) {
       // Include full metric history
-      for (const [name, values] of this._metrics) {
+      for (const [name, values] of Array.from(this._metrics)) {
         result.metrics[name] = {
           config: this._configs.get(name),
           values: values.slice(-100), // Last 100 values
@@ -657,7 +657,7 @@ export class MetricsCollector extends EventEmitter {
       }
     } else {
       // Include only latest values and stats
-      for (const name of this._metrics.keys()) {
+      for (const name of Array.from(this._metrics.keys())) {
         result.metrics[name] = {
           latest: this.getLatestValue(name),
           stats: this.getMetricStats(name),
@@ -679,7 +679,7 @@ export class MetricsCollector extends EventEmitter {
     const cutoff = Date.now() - this._retentionPeriod;
     let totalRemoved = 0;
     
-    for (const [name, values] of this._metrics) {
+    for (const [name, values] of Array.from(this._metrics)) {
       const initialLength = values.length;
       
       // Remove old values

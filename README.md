@@ -4,9 +4,10 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![MCP SDK](https://img.shields.io/badge/MCP%20SDK-v1.0.0-green.svg)](https://github.com/modelcontextprotocol/typescript-sdk)
 [![Node.js](https://img.shields.io/badge/node-18+-brightgreen.svg)](https://nodejs.org)
+[![Transport Compliance](https://img.shields.io/badge/Transport-stdio%20%7C%20HTTP-brightgreen.svg)](docs/HTTP_TRANSPORT.md)
 [![NetADX](https://img.shields.io/badge/Powered%20by-NetADX.ai-purple.svg)](https://netadx.ai)
 
-A production-ready MCP (Model Context Protocol) server ecosystem built on the official TypeScript SDK, delivering specialized servers, reusable templates, and complete deployment infrastructure.
+A production-ready MCP (Model Context Protocol) server ecosystem built on the official TypeScript SDK, delivering specialized servers, reusable templates, HTTP transport support, and complete deployment infrastructure.
 
 > 🚀 **Professional AI Solutions**: Need custom AI integrations? [NetADX.ai](https://netadx.ai) offers enterprise AI customizer services, from proof-of-concept to production deployment. Transform your business with tailored AI solutions!
 
@@ -26,20 +27,49 @@ npm run build
 # Run a server
 npm run dev --workspace=servers/news-data-server
 
-# Test the API
-curl http://localhost:8001/mcp/tools/list
+# Test HTTP transport
+curl http://localhost:8001/mcp/health
+curl http://localhost:8001/mcp/tools
 ```
+
+## 🌐 Transport Support
+
+This ecosystem supports multiple MCP transport layers:
+
+### Standard Transport
+- **Stdio Transport**: Standard MCP communication via stdin/stdout
+- **Compatible with all MCP clients** including Claude Desktop, MCP Inspector
+
+### HTTP Transport ✨ NEW
+- **REST API Endpoints**: Direct HTTP access to tools and server status
+- **JSON-RPC over HTTP**: Standard MCP protocol over HTTP POST
+- **Authentication**: API key, JWT, Bearer token support
+- **OpenAPI Documentation**: Auto-generated Swagger docs at `/docs`
+- **Production Ready**: Rate limiting, CORS, security headers
+
+```bash
+# HTTP transport examples
+curl http://localhost:8000/mcp/health              # Server health
+curl http://localhost:8000/mcp/tools               # List tools
+curl -X POST http://localhost:8000/mcp/tools/echo  # Execute tool
+curl http://localhost:8000/docs                    # API documentation
+
+# Start HTTP-enabled server example
+npm run example:http:dev
+```
+
+**📚 HTTP Transport Documentation**: [Complete HTTP Transport Guide](docs/HTTP_TRANSPORT.md)
 
 ## 📋 Production Servers
 
-| Server | Purpose | Tools | Port |
-|--------|---------|-------|------|
-| **news-data-server** | Real-time news & trends | 5 tools | 8001 |
-| **template-server** | Content templates & rendering | 7 tools | 8002 |
-| **analytics-server** | Metrics & performance data | 7 tools | 8003 |
-| **database-server** | Query & data access | 7 tools | 8004 |
-| **api-gateway-server** | External API integration | 5 tools | 8005 |
-| **workflow-server** | Task automation | 7 tools | 8006 |
+| Server | Purpose | Tools | Port | HTTP Support |
+|--------|---------|-------|------|--------------|
+| **news-data-server** | Real-time news & trends | 5 tools | 8001 | ✅ Stdio + HTTP |
+| **template-server** | Content templates & rendering | 7 tools | 8002 | ✅ Stdio + HTTP |
+| **analytics-server** | Metrics & performance data | 7 tools | 8003 | ✅ Stdio + HTTP |
+| **database-server** | Query & data access | 7 tools | 8004 | ✅ Stdio + HTTP |
+| **api-gateway-server** | External API integration | 5 tools | 8005 | ✅ Stdio + HTTP |
+| **workflow-server** | Task automation | 7 tools | 8006 | ✅ Stdio + HTTP |
 
 ### News Data Server
 Real-time news and trends data provider with multi-language support.

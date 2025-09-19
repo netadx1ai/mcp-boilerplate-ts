@@ -687,6 +687,89 @@ export type EventListener = (payload: EventPayload) => void | Promise<void>;
 // =============================================================================
 
 /**
+ * HTTP transport configuration
+ */
+export interface HttpTransportConfig {
+  readonly port: number;
+  readonly host: string;
+  readonly basePath: string;
+  readonly cors: CorsConfig;
+  readonly auth?: HttpAuthConfig;
+  readonly rateLimit?: RateLimitConfig;
+  readonly security: HttpSecurityConfig;
+  readonly swagger?: SwaggerConfig;
+}
+
+/**
+ * Configuration for HTTP MCP Server
+ */
+export interface HttpMcpServerConfig extends McpServerConfig {
+  readonly http: HttpTransportConfig;
+  readonly enableStdio: boolean;
+  readonly primaryTransport: 'stdio' | 'http';
+}
+
+/**
+ * CORS configuration
+ */
+export interface CorsConfig {
+  readonly enabled: boolean;
+  readonly origins: string[];
+  readonly methods: string[];
+  readonly allowedHeaders: string[];
+  readonly credentials: boolean;
+}
+
+/**
+ * HTTP Authentication configuration
+ */
+export interface HttpAuthConfig {
+  readonly enabled: boolean;
+  readonly type: 'apikey' | 'jwt' | 'bearer' | 'basic';
+  readonly apiKeys?: string[];
+  readonly jwtSecret?: string;
+  readonly jwtExpiration?: string;
+  readonly headerName?: string;
+}
+
+/**
+ * Rate limiting configuration
+ */
+export interface RateLimitConfig {
+  readonly enabled: boolean;
+  readonly windowMs: number;
+  readonly maxRequests: number;
+  readonly message?: string;
+  readonly skipSuccessfulRequests?: boolean;
+}
+
+/**
+ * HTTP security configuration
+ */
+export interface HttpSecurityConfig {
+  readonly helmet: boolean;
+  readonly trustProxy: boolean;
+  readonly requestSizeLimit: string;
+  readonly timeout: number;
+}
+
+/**
+ * Swagger/OpenAPI configuration
+ */
+export interface SwaggerConfig {
+  readonly enabled: boolean;
+  readonly path: string;
+  readonly title: string;
+  readonly description: string;
+  readonly version: string;
+  readonly contact?: {
+    name: string;
+    email: string;
+    url: string;
+  };
+}
+
+/**
  * HTTP request context
  */
 export interface HttpRequestContext {
@@ -790,6 +873,25 @@ export function isMcpBoilerplateError(error: unknown): error is McpBoilerplateEr
 // =============================================================================
 // Constants
 // =============================================================================
+
+/**
+ * Transport type definitions
+ */
+export type TransportType = 'stdio' | 'http' | 'sse';
+
+/**
+ * Transport health status interface
+ */
+export interface TransportHealthStatus {
+  healthy: boolean;
+  transport: TransportType;
+  port?: number;
+  host?: string;
+  uptime?: number;
+  requestCount?: number;
+  errorCount?: number;
+  lastError?: string;
+}
 
 /**
  * Default server ports

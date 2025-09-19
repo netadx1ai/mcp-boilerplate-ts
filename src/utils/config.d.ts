@@ -34,10 +34,10 @@ export declare const LoggingConfigSchema: z.ZodObject<{
     maxFiles: number;
     file?: string | undefined;
 }, {
+    file?: string | undefined;
     level?: "error" | "warn" | "info" | "debug" | "trace" | undefined;
     format?: "json" | "pretty" | undefined;
     output?: "console" | "file" | "both" | undefined;
-    file?: string | undefined;
     maxSize?: string | undefined;
     maxFiles?: number | undefined;
 }>;
@@ -221,10 +221,10 @@ export declare const CompleteServerConfigSchema: z.ZodObject<{
         maxFiles: number;
         file?: string | undefined;
     }, {
+        file?: string | undefined;
         level?: "error" | "warn" | "info" | "debug" | "trace" | undefined;
         format?: "json" | "pretty" | undefined;
         output?: "console" | "file" | "both" | undefined;
-        file?: string | undefined;
         maxSize?: string | undefined;
         maxFiles?: number | undefined;
     }>;
@@ -250,12 +250,12 @@ export declare const CompleteServerConfigSchema: z.ZodObject<{
             methods: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
         }, "strip", z.ZodTypeAny, {
             enabled: boolean;
-            origins: string[];
             methods: string[];
+            origins: string[];
         }, {
             enabled?: boolean | undefined;
-            origins?: string[] | undefined;
             methods?: string[] | undefined;
+            origins?: string[] | undefined;
         }>;
     }, "strip", z.ZodTypeAny, {
         enableAuth: boolean;
@@ -266,8 +266,8 @@ export declare const CompleteServerConfigSchema: z.ZodObject<{
         };
         cors: {
             enabled: boolean;
-            origins: string[];
             methods: string[];
+            origins: string[];
         };
         apiKeys?: string[] | undefined;
     }, {
@@ -278,8 +278,8 @@ export declare const CompleteServerConfigSchema: z.ZodObject<{
         };
         cors: {
             enabled?: boolean | undefined;
-            origins?: string[] | undefined;
             methods?: string[] | undefined;
+            origins?: string[] | undefined;
         };
         enableAuth?: boolean | undefined;
         apiKeys?: string[] | undefined;
@@ -344,8 +344,8 @@ export declare const CompleteServerConfigSchema: z.ZodObject<{
         };
         cors: {
             enabled: boolean;
-            origins: string[];
             methods: string[];
+            origins: string[];
         };
         apiKeys?: string[] | undefined;
     };
@@ -365,10 +365,10 @@ export declare const CompleteServerConfigSchema: z.ZodObject<{
     description: string;
     port: number;
     logging: {
+        file?: string | undefined;
         level?: "error" | "warn" | "info" | "debug" | "trace" | undefined;
         format?: "json" | "pretty" | undefined;
         output?: "console" | "file" | "both" | undefined;
-        file?: string | undefined;
         maxSize?: string | undefined;
         maxFiles?: number | undefined;
     };
@@ -380,8 +380,8 @@ export declare const CompleteServerConfigSchema: z.ZodObject<{
         };
         cors: {
             enabled?: boolean | undefined;
-            origins?: string[] | undefined;
             methods?: string[] | undefined;
+            origins?: string[] | undefined;
         };
         enableAuth?: boolean | undefined;
         apiKeys?: string[] | undefined;
