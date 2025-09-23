@@ -290,7 +290,9 @@ export function loadConfigFromEnv(serverName) {
     // Security configuration
     config.security = {
         enableAuth: getEnvBoolean('ENABLE_AUTH', false),
-        apiKeys: getEnvVar('API_KEYS')?.split(',').map(key => key.trim()),
+        apiKeys: getEnvVar('API_KEYS')
+            ?.split(',')
+            .map(key => key.trim()),
         rateLimiting: {
             enabled: getEnvBoolean('RATE_LIMIT_ENABLED', true),
             windowMs: getEnvNumber('RATE_LIMIT_WINDOW', DEFAULT_LIMITS.RATE_LIMIT_WINDOW),
@@ -298,9 +300,12 @@ export function loadConfigFromEnv(serverName) {
         },
         cors: {
             enabled: getEnvBoolean('CORS_ENABLED', true),
-            origins: getEnvVar('CORS_ORIGINS')?.split(',').map(origin => origin.trim()) || ['*'],
-            methods: getEnvVar('CORS_METHODS')?.split(',').map(method => method.trim()) ||
-                ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+            origins: getEnvVar('CORS_ORIGINS')
+                ?.split(',')
+                .map(origin => origin.trim()) || ['*'],
+            methods: getEnvVar('CORS_METHODS')
+                ?.split(',')
+                .map(method => method.trim()) || ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         },
     };
     // Performance configuration
@@ -353,7 +358,9 @@ export function validateConfig(config) {
     }
     catch (error) {
         if (error instanceof z.ZodError) {
-            const issues = error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`).join(', ');
+            const issues = error.issues
+                .map(issue => `${issue.path.join('.')}: ${issue.message}`)
+                .join(', ');
             throw new ServerConfigError(`Configuration validation failed: ${issues}`);
         }
         const message = error instanceof Error ? error.message : String(error);

@@ -1,10 +1,10 @@
 /**
  * @fileoverview Core Module Index
- * 
+ *
  * Central export point for all core functionality in the MCP boilerplate
  * TypeScript ecosystem. This module provides easy access to server classes,
  * builders, and core interfaces.
- * 
+ *
  * @author MCP Boilerplate Team
  * @version 0.3.0
  */
@@ -42,15 +42,9 @@ export {
   isTest,
 } from '../utils/config.js';
 
-export {
-  createDefaultLogger,
-  createRequestLogger,
-  createToolLogger,
-} from '../utils/logger.js';
+export { createDefaultLogger, createRequestLogger, createToolLogger } from '../utils/logger.js';
 
-export {
-  createMetricsCollector,
-} from '../utils/metrics.js';
+export { createMetricsCollector } from '../utils/metrics.js';
 
 // =============================================================================
 // Quick Start Factory Functions
@@ -58,7 +52,7 @@ export {
 
 /**
  * Create a development server with sensible defaults
- * 
+ *
  * @param name - Server name
  * @param tools - Tools to register
  * @returns Development-configured MCP server
@@ -95,7 +89,7 @@ export async function createDevServer(name: string, tools: any[] = []): Promise<
 
 /**
  * Create a production server with security defaults
- * 
+ *
  * @param name - Server name
  * @param tools - Tools to register
  * @returns Production-configured MCP server
@@ -133,7 +127,7 @@ export async function createProdServer(name: string, tools: any[] = []): Promise
 
 /**
  * Create a test server with minimal configuration
- * 
+ *
  * @param name - Server name
  * @param tools - Tools to register
  * @returns Test-configured MCP server

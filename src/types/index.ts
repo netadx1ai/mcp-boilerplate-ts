@@ -1,9 +1,9 @@
 /**
  * @fileoverview Shared types for MCP Boilerplate TypeScript Ecosystem
- * 
+ *
  * This module provides comprehensive type definitions for the MCP boilerplate ecosystem,
  * including server interfaces, tool definitions, configuration types, and common utilities.
- * 
+ *
  * @author MCP Boilerplate Team
  * @version 0.3.0
  */
@@ -93,7 +93,7 @@ export interface McpTool {
 /**
  * Tool categories for organization and discovery
  */
-export type ToolCategory = 
+export type ToolCategory =
   | 'data'
   | 'content'
   | 'analytics'
@@ -493,10 +493,12 @@ export const ToolResultSchema = z.object({
   success: z.boolean(),
   data: z.unknown().optional(),
   error: z.string().optional(),
-  metadata: z.object({
-    executionTime: z.number().nonnegative(),
-    timestamp: z.string().datetime(),
-  }).optional(),
+  metadata: z
+    .object({
+      executionTime: z.number().nonnegative(),
+      timestamp: z.string().datetime(),
+    })
+    .optional(),
 });
 
 // =============================================================================
@@ -639,7 +641,7 @@ export interface McpServer {
   readonly config: McpServerConfig;
   readonly tools: ReadonlyMap<string, McpTool>;
   readonly stats: ServerStats;
-  
+
   start(): Promise<void>;
   stop(): Promise<void>;
   restart(): Promise<void>;
@@ -656,7 +658,7 @@ export interface McpServer {
 /**
  * Server events
  */
-export type ServerEvent = 
+export type ServerEvent =
   | 'server:started'
   | 'server:stopped'
   | 'server:error'
@@ -941,12 +943,12 @@ export type {
   McpServerConfig as Config,
   McpTool as Tool,
   McpServer as Server,
-  
+
   // Results
   ToolResult as Result,
   QueryResult as DbResult,
   ApiResponse as ApiResult,
-  
+
   // Common
   ServerState as State,
   ToolCategory as Category,

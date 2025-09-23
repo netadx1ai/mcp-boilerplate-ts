@@ -169,7 +169,10 @@ export class MetricsCollector extends EventEmitter {
         this._toolExecutions.set(toolName, current + 1);
         // Record detailed metrics
         this.timing('tool_execution_time', duration, { tool: toolName });
-        this.increment('tool_executions_total', 1, { tool: toolName, status: success ? 'success' : 'error' });
+        this.increment('tool_executions_total', 1, {
+            tool: toolName,
+            status: success ? 'success' : 'error',
+        });
         if (!success) {
             this.increment('tool_errors_total', 1, { tool: toolName });
         }
@@ -292,7 +295,7 @@ export class MetricsCollector extends EventEmitter {
         }
         // Aggregate each bucket
         const dataPoints = [];
-        for (const [bucketTime, bucketValues] of buckets) {
+        for (const [bucketTime, bucketValues] of Array.from(buckets)) {
             const aggregatedValue = this._aggregateValues(bucketValues, aggregation);
             dataPoints.push({
                 timestamp: new Date(bucketTime).toISOString(),
@@ -407,7 +410,7 @@ export class MetricsCollector extends EventEmitter {
      */
     getSummary() {
         const summary = {};
-        for (const name of this._metrics.keys()) {
+        for (const name of Array.from(this._metrics.keys())) {
             const stats = this.getMetricStats(name);
             if (stats) {
                 summary[name] = stats;
@@ -450,7 +453,7 @@ export class MetricsCollector extends EventEmitter {
      */
     exportPrometheus() {
         const lines = [];
-        for (const [name, values] of this._metrics) {
+        for (const [name, values] of Array.from(this._metrics)) {
             const config = this._configs.get(name);
             const latest = values[values.length - 1];
             if (!latest)
@@ -493,7 +496,7 @@ export class MetricsCollector extends EventEmitter {
         };
         if (includeHistory) {
             // Include full metric history
-            for (const [name, values] of this._metrics) {
+            for (const [name, values] of Array.from(this._metrics)) {
                 result.metrics[name] = {
                     config: this._configs.get(name),
                     values: values.slice(-100), // Last 100 values
@@ -503,7 +506,7 @@ export class MetricsCollector extends EventEmitter {
         }
         else {
             // Include only latest values and stats
-            for (const name of this._metrics.keys()) {
+            for (const name of Array.from(this._metrics.keys())) {
                 result.metrics[name] = {
                     latest: this.getLatestValue(name),
                     stats: this.getMetricStats(name),
@@ -521,7 +524,7 @@ export class MetricsCollector extends EventEmitter {
     cleanup() {
         const cutoff = Date.now() - this._retentionPeriod;
         let totalRemoved = 0;
-        for (const [name, values] of this._metrics) {
+        for (const [name, values] of Array.from(this._metrics)) {
             const initialLength = values.length;
             // Remove old values
             const filtered = values.filter(v => v.timestamp >= cutoff);
@@ -907,7 +910,11 @@ export function createDatabaseMetrics(collector) {
          */
         recordQuery(operation, table, duration, success) {
             collector.timing('db_query_duration', duration, { operation, table });
-            collector.increment('db_queries_total', 1, { operation, table, status: success ? 'success' : 'error' });
+            collector.increment('db_queries_total', 1, {
+                operation,
+                table,
+                status: success ? 'success' : 'error',
+            });
             if (!success) {
                 collector.increment('db_errors_total', 1, { operation, table });
             }

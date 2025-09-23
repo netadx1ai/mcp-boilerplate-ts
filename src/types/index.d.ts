@@ -402,26 +402,26 @@ export declare const ServerConfigSchema: z.ZodObject<{
             maxRequests: z.ZodNumber;
         }, "strip", z.ZodTypeAny, {
             enabled: boolean;
-            windowMs: number;
             maxRequests: number;
+            windowMs: number;
         }, {
             enabled: boolean;
-            windowMs: number;
             maxRequests: number;
+            windowMs: number;
         }>;
     }, "strip", z.ZodTypeAny, {
         enableAuth: boolean;
         rateLimiting: {
             enabled: boolean;
-            windowMs: number;
             maxRequests: number;
+            windowMs: number;
         };
     }, {
         enableAuth: boolean;
         rateLimiting: {
             enabled: boolean;
-            windowMs: number;
             maxRequests: number;
+            windowMs: number;
         };
     }>;
 }, "strip", z.ZodTypeAny, {
@@ -440,8 +440,8 @@ export declare const ServerConfigSchema: z.ZodObject<{
         enableAuth: boolean;
         rateLimiting: {
             enabled: boolean;
-            windowMs: number;
             maxRequests: number;
+            windowMs: number;
         };
     };
 }, {
@@ -460,8 +460,8 @@ export declare const ServerConfigSchema: z.ZodObject<{
         enableAuth: boolean;
         rateLimiting: {
             enabled: boolean;
-            windowMs: number;
             maxRequests: number;
+            windowMs: number;
         };
     };
 }>;
@@ -480,27 +480,27 @@ export declare const ToolResultSchema: z.ZodObject<{
         executionTime: z.ZodNumber;
         timestamp: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        executionTime: number;
         timestamp: string;
+        executionTime: number;
     }, {
-        executionTime: number;
         timestamp: string;
+        executionTime: number;
     }>>;
 }, "strip", z.ZodTypeAny, {
     success: boolean;
     error?: string | undefined;
     data?: unknown;
     metadata?: {
-        executionTime: number;
         timestamp: string;
+        executionTime: number;
     } | undefined;
 }, {
     success: boolean;
     error?: string | undefined;
     data?: unknown;
     metadata?: {
-        executionTime: number;
         timestamp: string;
+        executionTime: number;
     } | undefined;
 }>;
 /**

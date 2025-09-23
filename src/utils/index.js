@@ -250,7 +250,7 @@ export function throttle(fn, delay) {
  * @returns Circuit breaker wrapped function
  */
 export function createCircuitBreaker(fn, options = {}) {
-    const { failureThreshold = 5, resetTimeout = 60000, monitoringPeriod = 10000, } = options;
+    const { failureThreshold = 5, resetTimeout = 60000, monitoringPeriod = 10000 } = options;
     let state = 'closed';
     let failureCount = 0;
     let lastFailureTime = 0;
@@ -319,7 +319,10 @@ export function getEnvArray(name, defaultValue = []) {
     const value = process.env[name];
     if (!value)
         return defaultValue;
-    return value.split(',').map(item => item.trim()).filter(Boolean);
+    return value
+        .split(',')
+        .map(item => item.trim())
+        .filter(Boolean);
 }
 /**
  * Create a promise that resolves after all provided promises settle

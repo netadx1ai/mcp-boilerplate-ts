@@ -2,18 +2,18 @@
 
 /**
  * @fileoverview Database Server - Production MCP Server for Database Operations
- * 
+ *
  * A production-ready MCP server that provides comprehensive database functionality
  * using the official TypeScript SDK. This server demonstrates real-world MCP server
  * implementation with 7 specialized database tools.
- * 
+ *
  * Features:
  * - Official @modelcontextprotocol/sdk integration
  * - 7 database tools: query, schema, migrate, backup, restore, monitor, status
  * - Multi-database support (PostgreSQL, MySQL, SQLite, MongoDB)
  * - Production error handling and logging
  * - Connection pooling and performance monitoring
- * 
+ *
  * @author MCP Boilerplate Team
  * @version 1.0.0
  */
@@ -96,7 +96,7 @@ const serverStats: ServerStats = {
   queriesExecuted: 0,
   migrationsApplied: 0,
   backupsCreated: 0,
-  connectionsActive: 0
+  connectionsActive: 0,
 };
 
 // Mock data storage
@@ -110,7 +110,7 @@ const connectionsStore: DatabaseConnection[] = [
     username: 'app_user',
     ssl: true,
     status: 'connected',
-    lastUsed: new Date().toISOString()
+    lastUsed: new Date().toISOString(),
   },
   {
     id: 'conn_dev_mysql',
@@ -121,8 +121,8 @@ const connectionsStore: DatabaseConnection[] = [
     username: 'dev_user',
     ssl: false,
     status: 'connected',
-    lastUsed: new Date().toISOString()
-  }
+    lastUsed: new Date().toISOString(),
+  },
 ];
 
 // =============================================================================
@@ -146,29 +146,29 @@ function generateMockQueryResult(query: string): QueryResult {
   const isInsert = query.toLowerCase().trim().startsWith('insert');
   const isUpdate = query.toLowerCase().trim().startsWith('update');
   const isDelete = query.toLowerCase().trim().startsWith('delete');
-  
+
   if (isSelect) {
     const rows = Array.from({ length: Math.floor(Math.random() * 10) + 1 }, (_, i) => ({
       id: i + 1,
       name: `Record ${i + 1}`,
       created_at: new Date(Date.now() - Math.random() * 86400000 * 30).toISOString(),
       updated_at: new Date().toISOString(),
-      status: ['active', 'inactive', 'pending'][Math.floor(Math.random() * 3)]
+      status: ['active', 'inactive', 'pending'][Math.floor(Math.random() * 3)],
     }));
-    
+
     return {
       rows,
       rowCount: rows.length,
-      executionTime: Math.floor(Math.random() * 100) + 10
+      executionTime: Math.floor(Math.random() * 100) + 10,
     };
   }
-  
+
   return {
     rows: [],
     rowCount: isInsert ? 1 : Math.floor(Math.random() * 5) + 1,
     executionTime: Math.floor(Math.random() * 50) + 5,
     affectedRows: isUpdate || isDelete ? Math.floor(Math.random() * 10) + 1 : undefined,
-    insertId: isInsert ? Math.floor(Math.random() * 1000) + 1 : undefined
+    insertId: isInsert ? Math.floor(Math.random() * 1000) + 1 : undefined,
   };
 }
 
@@ -188,23 +188,39 @@ function registerExecuteQueryTool(server: McpServer) {
       inputSchema: {
         query: z.string().describe('SQL query to execute'),
         connectionId: z.string().optional().describe('Database connection ID (optional)'),
-        limit: z.number().int().min(1).max(1000).optional().default(100).describe('Maximum rows to return'),
-        timeout: z.number().int().min(1).max(300).optional().default(30).describe('Query timeout in seconds')
-      }
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(1000)
+          .optional()
+          .default(100)
+          .describe('Maximum rows to return'),
+        timeout: z
+          .number()
+          .int()
+          .min(1)
+          .max(300)
+          .optional()
+          .default(30)
+          .describe('Query timeout in seconds'),
+      },
     },
     async ({ query, connectionId, limit = 100, timeout = 30 }) => {
       updateStats('execute_query');
       serverStats.queriesExecuted++;
-      
-      console.error(`💾 Query execution: connection='${connectionId || 'default'}', timeout=${timeout}s`);
-      
+
+      console.error(
+        `💾 Query execution: connection='${connectionId || 'default'}', timeout=${timeout}s`
+      );
+
       // Simulate query execution
-      const connection = connectionId ? 
-        connectionsStore.find(c => c.id === connectionId) || connectionsStore[0] :
-        connectionsStore[0];
-      
+      const connection = connectionId
+        ? connectionsStore.find(c => c.id === connectionId) || connectionsStore[0]
+        : connectionsStore[0];
+
       const result = generateMockQueryResult(query);
-      
+
       const summary = `💾 **Query Executed Successfully**
 
 **Connection Details:**
@@ -224,12 +240,14 @@ ${query}
 \`\`\`
 
 **Results:**
-${result.rows.length > 0 ? 
-  result.rows.slice(0, Math.min(5, limit)).map((row, index) => 
-    `**Row ${index + 1}:** ${JSON.stringify(row, null, 2)}`
-  ).join('\n') + 
-  (result.rows.length > 5 ? `\n... and ${result.rows.length - 5} more rows` : '') :
-  'No rows returned'
+${
+  result.rows.length > 0
+    ? result.rows
+        .slice(0, Math.min(5, limit))
+        .map((row, index) => `**Row ${index + 1}:** ${JSON.stringify(row, null, 2)}`)
+        .join('\n') +
+      (result.rows.length > 5 ? `\n... and ${result.rows.length - 5} more rows` : '')
+    : 'No rows returned'
 }
 
 **Performance:**
@@ -240,10 +258,12 @@ ${result.rows.length > 0 ?
 ✅ Query completed successfully!`;
 
       return {
-        content: [{
-          type: 'text',
-          text: summary
-        }]
+        content: [
+          {
+            type: 'text',
+            text: summary,
+          },
+        ],
       };
     }
   );
@@ -261,19 +281,25 @@ function registerGetSchemaTool(server: McpServer) {
       inputSchema: {
         connectionId: z.string().optional().describe('Database connection ID'),
         includeIndexes: z.boolean().optional().default(true).describe('Include index information'),
-        includeConstraints: z.boolean().optional().default(true).describe('Include constraint information'),
-        tablePattern: z.string().optional().describe('Filter tables by pattern (SQL LIKE syntax)')
-      }
+        includeConstraints: z
+          .boolean()
+          .optional()
+          .default(true)
+          .describe('Include constraint information'),
+        tablePattern: z.string().optional().describe('Filter tables by pattern (SQL LIKE syntax)'),
+      },
     },
     async ({ connectionId, includeIndexes = true, includeConstraints = true, tablePattern }) => {
       updateStats('get_schema');
-      
-      console.error(`🏗️ Schema retrieval: connection='${connectionId || 'default'}', pattern='${tablePattern || 'all'}'`);
-      
-      const connection = connectionId ? 
-        connectionsStore.find(c => c.id === connectionId) || connectionsStore[0] :
-        connectionsStore[0];
-      
+
+      console.error(
+        `🏗️ Schema retrieval: connection='${connectionId || 'default'}', pattern='${tablePattern || 'all'}'`
+      );
+
+      const connection = connectionId
+        ? connectionsStore.find(c => c.id === connectionId) || connectionsStore[0]
+        : connectionsStore[0];
+
       // Generate mock schema
       const schema: SchemaInfo = {
         tables: [
@@ -283,10 +309,10 @@ function registerGetSchemaTool(server: McpServer) {
               { name: 'id', type: 'SERIAL', nullable: false, primaryKey: true },
               { name: 'email', type: 'VARCHAR(255)', nullable: false, primaryKey: false },
               { name: 'name', type: 'VARCHAR(100)', nullable: true, primaryKey: false },
-              { name: 'created_at', type: 'TIMESTAMP', nullable: false, primaryKey: false }
+              { name: 'created_at', type: 'TIMESTAMP', nullable: false, primaryKey: false },
             ],
             indexes: ['idx_users_email', 'idx_users_created_at'],
-            foreignKeys: []
+            foreignKeys: [],
           },
           {
             name: 'orders',
@@ -294,17 +320,17 @@ function registerGetSchemaTool(server: McpServer) {
               { name: 'id', type: 'SERIAL', nullable: false, primaryKey: true },
               { name: 'user_id', type: 'INTEGER', nullable: false, primaryKey: false },
               { name: 'total', type: 'DECIMAL(10,2)', nullable: false, primaryKey: false },
-              { name: 'status', type: 'VARCHAR(50)', nullable: false, primaryKey: false }
+              { name: 'status', type: 'VARCHAR(50)', nullable: false, primaryKey: false },
             ],
             indexes: ['idx_orders_user_id', 'idx_orders_status'],
-            foreignKeys: ['fk_orders_user_id']
-          }
+            foreignKeys: ['fk_orders_user_id'],
+          },
         ],
         views: ['user_order_summary', 'monthly_sales'],
         procedures: ['calculate_user_stats', 'cleanup_old_records'],
-        functions: ['get_user_total', 'format_currency']
+        functions: ['get_user_total', 'format_currency'],
       };
-      
+
       const summary = `🏗️ **Database Schema Information**
 
 **Database:** ${connection.database} (${connection.type})
@@ -317,13 +343,17 @@ function registerGetSchemaTool(server: McpServer) {
 - **Functions:** ${schema.functions.length}
 
 **📋 Table Details:**
-${schema.tables.map(table => `
+${schema.tables
+  .map(
+    table => `
 **${table.name}**
 - Columns: ${table.columns.length} (${table.columns.filter(c => c.primaryKey).length} PK)
 - Indexes: ${includeIndexes ? table.indexes.join(', ') || 'None' : table.indexes.length}
 - Foreign Keys: ${includeConstraints ? table.foreignKeys.join(', ') || 'None' : table.foreignKeys.length}
 - Column Details:
-${table.columns.map(col => `  • ${col.name}: ${col.type}${col.nullable ? ' NULL' : ' NOT NULL'}${col.primaryKey ? ' PK' : ''}`).join('\n')}`).join('\n')}
+${table.columns.map(col => `  • ${col.name}: ${col.type}${col.nullable ? ' NULL' : ' NOT NULL'}${col.primaryKey ? ' PK' : ''}`).join('\n')}`
+  )
+  .join('\n')}
 
 **🔍 Database Objects:**
 - **Views:** ${schema.views.join(', ') || 'None'}
@@ -338,10 +368,12 @@ ${table.columns.map(col => `  • ${col.name}: ${col.type}${col.nullable ? ' NUL
 *Schema retrieved at: ${new Date().toISOString()}*`;
 
       return {
-        content: [{
-          type: 'text',
-          text: summary
-        }]
+        content: [
+          {
+            type: 'text',
+            text: summary,
+          },
+        ],
       };
     }
   );
@@ -360,19 +392,21 @@ function registerRunMigrationTool(server: McpServer) {
         migrationName: z.string().describe('Migration name or version'),
         direction: z.enum(['up', 'down']).optional().default('up').describe('Migration direction'),
         dryRun: z.boolean().optional().default(false).describe('Perform dry run without executing'),
-        connectionId: z.string().optional().describe('Database connection ID')
-      }
+        connectionId: z.string().optional().describe('Database connection ID'),
+      },
     },
     async ({ migrationName, direction = 'up', dryRun = false, connectionId }) => {
       updateStats('run_migration');
       if (!dryRun) serverStats.migrationsApplied++;
-      
-      console.error(`🔄 Migration: name='${migrationName}', direction='${direction}', dryRun=${dryRun}`);
-      
-      const connection = connectionId ? 
-        connectionsStore.find(c => c.id === connectionId) || connectionsStore[0] :
-        connectionsStore[0];
-      
+
+      console.error(
+        `🔄 Migration: name='${migrationName}', direction='${direction}', dryRun=${dryRun}`
+      );
+
+      const connection = connectionId
+        ? connectionsStore.find(c => c.id === connectionId) || connectionsStore[0]
+        : connectionsStore[0];
+
       // Mock migration execution
       const migration: MigrationInfo = {
         id: `mig_${Date.now()}`,
@@ -380,9 +414,9 @@ function registerRunMigrationTool(server: McpServer) {
         version: `v${Math.floor(Math.random() * 100) + 1}.0.0`,
         status: dryRun ? 'pending' : 'completed',
         appliedAt: dryRun ? undefined : new Date().toISOString(),
-        executionTime: Math.floor(Math.random() * 5000) + 100
+        executionTime: Math.floor(Math.random() * 5000) + 100,
       };
-      
+
       const summary = `🔄 **Database Migration ${dryRun ? 'Dry Run' : 'Executed'}**
 
 **Migration Details:**
@@ -400,25 +434,29 @@ function registerRunMigrationTool(server: McpServer) {
 **Migration Script:**
 \`\`\`sql
 -- ${migrationName} (${direction})
-${direction === 'up' ? 
-`CREATE TABLE IF NOT EXISTS ${migrationName.toLowerCase()}_table (
+${
+  direction === 'up'
+    ? `CREATE TABLE IF NOT EXISTS ${migrationName.toLowerCase()}_table (
   id SERIAL PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_${migrationName.toLowerCase()}_name ON ${migrationName.toLowerCase()}_table(name);` :
-`DROP INDEX IF EXISTS idx_${migrationName.toLowerCase()}_name;
-DROP TABLE IF EXISTS ${migrationName.toLowerCase()}_table;`}
+CREATE INDEX idx_${migrationName.toLowerCase()}_name ON ${migrationName.toLowerCase()}_table(name);`
+    : `DROP INDEX IF EXISTS idx_${migrationName.toLowerCase()}_name;
+DROP TABLE IF EXISTS ${migrationName.toLowerCase()}_table;`
+}
 \`\`\`
 
 **Changes Applied:**
-${direction === 'up' ? 
-`- ✅ Created table: ${migrationName.toLowerCase()}_table
+${
+  direction === 'up'
+    ? `- ✅ Created table: ${migrationName.toLowerCase()}_table
 - ✅ Added index: idx_${migrationName.toLowerCase()}_name
-- ✅ Set up primary key constraint` :
-`- ✅ Removed index: idx_${migrationName.toLowerCase()}_name  
-- ✅ Dropped table: ${migrationName.toLowerCase()}_table`}
+- ✅ Set up primary key constraint`
+    : `- ✅ Removed index: idx_${migrationName.toLowerCase()}_name  
+- ✅ Dropped table: ${migrationName.toLowerCase()}_table`
+}
 
 **Server Statistics:**
 - Total Migrations Applied: ${serverStats.migrationsApplied}
@@ -427,10 +465,12 @@ ${direction === 'up' ?
 ${dryRun ? '⚠️ This was a dry run - no changes were actually applied' : '✅ Migration completed successfully!'}`;
 
       return {
-        content: [{
-          type: 'text',
-          text: summary
-        }]
+        content: [
+          {
+            type: 'text',
+            text: summary,
+          },
+        ],
       };
     }
   );
@@ -450,26 +490,28 @@ function registerCreateBackupTool(server: McpServer) {
         backupName: z.string().optional().describe('Custom backup name'),
         includeData: z.boolean().optional().default(true).describe('Include table data in backup'),
         compress: z.boolean().optional().default(true).describe('Compress backup file'),
-        encrypt: z.boolean().optional().default(false).describe('Encrypt backup file')
-      }
+        encrypt: z.boolean().optional().default(false).describe('Encrypt backup file'),
+      },
     },
     async ({ connectionId, backupName, includeData = true, compress = true, encrypt = false }) => {
       updateStats('create_backup');
       serverStats.backupsCreated++;
-      
-      console.error(`💾 Backup creation: connection='${connectionId || 'default'}', data=${includeData}, compress=${compress}`);
-      
-      const connection = connectionId ? 
-        connectionsStore.find(c => c.id === connectionId) || connectionsStore[0] :
-        connectionsStore[0];
-      
+
+      console.error(
+        `💾 Backup creation: connection='${connectionId || 'default'}', data=${includeData}, compress=${compress}`
+      );
+
+      const connection = connectionId
+        ? connectionsStore.find(c => c.id === connectionId) || connectionsStore[0]
+        : connectionsStore[0];
+
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const finalBackupName = backupName || `${connection.database}_backup_${timestamp}`;
       const fileExtension = compress ? '.sql.gz' : '.sql';
       const fileName = `${finalBackupName}${fileExtension}${encrypt ? '.enc' : ''}`;
-      
+
       const backupSize = Math.floor(Math.random() * 500 + 50); // MB
-      
+
       const summary = `💾 **Database Backup Created Successfully**
 
 **Backup Information:**
@@ -512,10 +554,12 @@ function registerCreateBackupTool(server: McpServer) {
 💾 Backup operation completed successfully!`;
 
       return {
-        content: [{
-          type: 'text',
-          text: summary
-        }]
+        content: [
+          {
+            type: 'text',
+            text: summary,
+          },
+        ],
       };
     }
   );
@@ -534,19 +578,26 @@ function registerRestoreBackupTool(server: McpServer) {
         backupFile: z.string().describe('Backup file name or path'),
         connectionId: z.string().optional().describe('Target database connection ID'),
         confirmRestore: z.boolean().describe('Confirmation required for destructive operation'),
-        preserveExisting: z.boolean().optional().default(false).describe('Preserve existing data before restore')
-      }
+        preserveExisting: z
+          .boolean()
+          .optional()
+          .default(false)
+          .describe('Preserve existing data before restore'),
+      },
     },
     async ({ backupFile, connectionId, confirmRestore, preserveExisting = false }) => {
       updateStats('restore_backup');
-      
-      console.error(`🔄 Backup restore: file='${backupFile}', preserve=${preserveExisting}, confirmed=${confirmRestore}`);
-      
+
+      console.error(
+        `🔄 Backup restore: file='${backupFile}', preserve=${preserveExisting}, confirmed=${confirmRestore}`
+      );
+
       if (!confirmRestore) {
         return {
-          content: [{
-            type: 'text',
-            text: `❌ **Restore Operation Cancelled**
+          content: [
+            {
+              type: 'text',
+              text: `❌ **Restore Operation Cancelled**
 
 **Reason:** Confirmation required for destructive database operation
 
@@ -555,19 +606,20 @@ function registerRestoreBackupTool(server: McpServer) {
 2. Ensure you have verified the backup file integrity
 3. Consider creating a backup of current data first
 
-**⚠️ WARNING:** Restore operation will overwrite existing database content!`
-          }]
+**⚠️ WARNING:** Restore operation will overwrite existing database content!`,
+            },
+          ],
         };
       }
-      
-      const connection = connectionId ? 
-        connectionsStore.find(c => c.id === connectionId) || connectionsStore[0] :
-        connectionsStore[0];
-      
+
+      const connection = connectionId
+        ? connectionsStore.find(c => c.id === connectionId) || connectionsStore[0]
+        : connectionsStore[0];
+
       // Mock restore process
       const restoreTime = Math.floor(Math.random() * 30 + 5);
       const recordsRestored = Math.floor(Math.random() * 100000 + 10000);
-      
+
       const summary = `🔄 **Database Restore Completed**
 
 **Restore Information:**
@@ -609,10 +661,12 @@ ${preserveExisting ? '3. ✅ Existing data preserved' : '3. ⚠️ Existing data
 🎉 Database restore completed successfully!`;
 
       return {
-        content: [{
-          type: 'text',
-          text: summary
-        }]
+        content: [
+          {
+            type: 'text',
+            text: summary,
+          },
+        ],
       };
     }
   );
@@ -629,19 +683,29 @@ function registerMonitorPerformanceTool(server: McpServer) {
       description: 'Monitor real-time database performance metrics and health indicators',
       inputSchema: {
         connectionId: z.string().optional().describe('Database connection ID'),
-        timeWindow: z.enum(['1m', '5m', '15m', '1h']).optional().default('5m').describe('Monitoring time window'),
-        includeSlowQueries: z.boolean().optional().default(true).describe('Include slow query analysis')
-      }
+        timeWindow: z
+          .enum(['1m', '5m', '15m', '1h'])
+          .optional()
+          .default('5m')
+          .describe('Monitoring time window'),
+        includeSlowQueries: z
+          .boolean()
+          .optional()
+          .default(true)
+          .describe('Include slow query analysis'),
+      },
     },
     async ({ connectionId, timeWindow = '5m', includeSlowQueries = true }) => {
       updateStats('monitor_performance');
-      
-      console.error(`📊 Performance monitoring: connection='${connectionId || 'default'}', window='${timeWindow}'`);
-      
-      const connection = connectionId ? 
-        connectionsStore.find(c => c.id === connectionId) || connectionsStore[0] :
-        connectionsStore[0];
-      
+
+      console.error(
+        `📊 Performance monitoring: connection='${connectionId || 'default'}', window='${timeWindow}'`
+      );
+
+      const connection = connectionId
+        ? connectionsStore.find(c => c.id === connectionId) || connectionsStore[0]
+        : connectionsStore[0];
+
       // Generate mock performance metrics
       const metrics = {
         cpu: Math.floor(Math.random() * 30 + 10),
@@ -650,9 +714,9 @@ function registerMonitorPerformanceTool(server: McpServer) {
         connections: Math.floor(Math.random() * 50 + 10),
         queryRate: Math.floor(Math.random() * 500 + 100),
         averageQueryTime: Math.floor(Math.random() * 100 + 20),
-        slowQueries: Math.floor(Math.random() * 10)
+        slowQueries: Math.floor(Math.random() * 10),
       };
-      
+
       const summary = `📊 **Database Performance Monitoring**
 
 **Database:** ${connection.database} (${connection.type})
@@ -671,7 +735,9 @@ function registerMonitorPerformanceTool(server: McpServer) {
 - **Slow Queries:** ${metrics.slowQueries} (last ${timeWindow})
 - **Query Cache Hit Rate:** ${Math.floor(Math.random() * 20 + 80)}%
 
-${includeSlowQueries && metrics.slowQueries > 0 ? `
+${
+  includeSlowQueries && metrics.slowQueries > 0
+    ? `
 **🐌 Slow Query Analysis:**
 1. \`SELECT * FROM large_table WHERE unindexed_column = ?\` (${Math.floor(Math.random() * 5000 + 1000)}ms)
 2. \`SELECT COUNT(*) FROM orders JOIN users ON ...\` (${Math.floor(Math.random() * 3000 + 500)}ms)
@@ -680,7 +746,9 @@ ${includeSlowQueries && metrics.slowQueries > 0 ? `
 **🛠️ Optimization Suggestions:**
 - Add index on frequently queried columns
 - Consider query result caching
-- Review JOIN operations for efficiency` : ''}
+- Review JOIN operations for efficiency`
+    : ''
+}
 
 **📈 Trends (${timeWindow}):**
 - CPU trend: ${Math.random() > 0.5 ? 'Stable' : 'Increasing'}
@@ -688,19 +756,23 @@ ${includeSlowQueries && metrics.slowQueries > 0 ? `
 - Query performance: ${Math.random() > 0.5 ? 'Improving' : 'Stable'}
 
 **🔔 Alerts:**
-${metrics.cpu > 80 || metrics.memory > 80 || metrics.diskIO > 80 ? 
-  '- ⚠️ High resource usage detected' : 
-  '- ✅ All metrics within normal ranges'}
+${
+  metrics.cpu > 80 || metrics.memory > 80 || metrics.diskIO > 80
+    ? '- ⚠️ High resource usage detected'
+    : '- ✅ All metrics within normal ranges'
+}
 
 **Health Score:** ${Math.floor(100 - (metrics.cpu * 0.3 + metrics.memory * 0.3 + metrics.diskIO * 0.2 + metrics.slowQueries * 2))}/100
 
 *Monitoring active since: ${new Date().toISOString()}*`;
 
       return {
-        content: [{
-          type: 'text',
-          text: summary
-        }]
+        content: [
+          {
+            type: 'text',
+            text: summary,
+          },
+        ],
       };
     }
   );
@@ -716,18 +788,29 @@ function registerManageConnectionsTool(server: McpServer) {
       title: 'Manage Database Connections',
       description: 'Manage database connections, view pool status, and handle connection lifecycle',
       inputSchema: {
-        action: z.enum(['list', 'test', 'close', 'refresh']).describe('Connection management action'),
-        connectionId: z.string().optional().describe('Specific connection ID (for test/close actions)'),
-        showDetails: z.boolean().optional().default(true).describe('Show detailed connection information')
-      }
+        action: z
+          .enum(['list', 'test', 'close', 'refresh'])
+          .describe('Connection management action'),
+        connectionId: z
+          .string()
+          .optional()
+          .describe('Specific connection ID (for test/close actions)'),
+        showDetails: z
+          .boolean()
+          .optional()
+          .default(true)
+          .describe('Show detailed connection information'),
+      },
     },
     async ({ action, connectionId, showDetails = true }) => {
       updateStats('manage_connections');
-      
-      console.error(`🔗 Connection management: action='${action}', connection='${connectionId || 'all'}'`);
-      
+
+      console.error(
+        `🔗 Connection management: action='${action}', connection='${connectionId || 'all'}'`
+      );
+
       let summary = '';
-      
+
       switch (action) {
         case 'list':
           summary = `🔗 **Database Connections**
@@ -735,15 +818,23 @@ function registerManageConnectionsTool(server: McpServer) {
 **Active Connections:** ${connectionsStore.length}
 **Pool Status:** ${serverStats.connectionsActive} active
 
-${connectionsStore.map((conn, index) => `
+${connectionsStore
+  .map(
+    (conn, index) => `
 **${index + 1}. ${conn.id}**
 - **Database:** ${conn.database} (${conn.type})
 - **Host:** ${conn.host}:${conn.port}
 - **Status:** ${conn.status === 'connected' ? '🟢' : conn.status === 'error' ? '🔴' : '🟡'} ${conn.status}
 - **SSL:** ${conn.ssl ? '✅ Enabled' : '❌ Disabled'}
 - **Last Used:** ${new Date(conn.lastUsed).toLocaleString()}
-${showDetails ? `- **Username:** ${conn.username || 'N/A'}
-- **Connection Pool:** 5/10 active` : ''}`).join('\n')}
+${
+  showDetails
+    ? `- **Username:** ${conn.username || 'N/A'}
+- **Connection Pool:** 5/10 active`
+    : ''
+}`
+  )
+  .join('\n')}
 
 **Pool Statistics:**
 - Maximum connections: 100
@@ -751,13 +842,15 @@ ${showDetails ? `- **Username:** ${conn.username || 'N/A'}
 - Idle connections: ${Math.floor(Math.random() * 20 + 5)}
 - Wait time: ${Math.floor(Math.random() * 50)}ms average`;
           break;
-          
+
         case 'test':
-          const testConn = connectionId ? connectionsStore.find(c => c.id === connectionId) : connectionsStore[0];
+          const testConn = connectionId
+            ? connectionsStore.find(c => c.id === connectionId)
+            : connectionsStore[0];
           if (!testConn) {
             throw new Error(`Connection not found: ${connectionId}`);
           }
-          
+
           const testTime = Math.floor(Math.random() * 200 + 50);
           summary = `🔗 **Connection Test Results**
 
@@ -779,7 +872,7 @@ ${showDetails ? `- **Username:** ${conn.username || 'N/A'}
 
 ✅ Connection is healthy and ready for use!`;
           break;
-          
+
         default:
           summary = `🔗 **Connection Management**
 
@@ -792,10 +885,12 @@ Action "${action}" ${connectionId ? `for connection ${connectionId}` : ''} compl
       }
 
       return {
-        content: [{
-          type: 'text',
-          text: summary
-        }]
+        content: [
+          {
+            type: 'text',
+            text: summary,
+          },
+        ],
       };
     }
   );
@@ -811,14 +906,18 @@ function registerServerStatusTool(server: McpServer) {
       title: 'Server Status',
       description: 'Get database server health status and usage statistics',
       inputSchema: {
-        includeStats: z.boolean().optional().default(true).describe('Include detailed usage statistics (default: true)')
-      }
+        includeStats: z
+          .boolean()
+          .optional()
+          .default(true)
+          .describe('Include detailed usage statistics (default: true)'),
+      },
     },
     async ({ includeStats = true }) => {
       updateStats('get_server_status');
-      
+
       console.error('📊 Server status requested');
-      
+
       const status = {
         server: SERVER_NAME,
         version: SERVER_VERSION,
@@ -827,8 +926,8 @@ function registerServerStatusTool(server: McpServer) {
         uptime: process.uptime(),
         memory: {
           used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
-          total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024)
-        }
+          total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024),
+        },
       };
 
       let responseText = `📊 **Database Server Status**
@@ -881,10 +980,12 @@ ${connectionsStore.map(conn => `- ${conn.id}: ${conn.status} (${conn.type})`).jo
 *Last updated: ${new Date().toISOString()}*`;
 
       return {
-        content: [{
-          type: 'text',
-          text: responseText
-        }]
+        content: [
+          {
+            type: 'text',
+            text: responseText,
+          },
+        ],
       };
     }
   );
@@ -900,9 +1001,9 @@ ${connectionsStore.map(conn => `- ${conn.id}: ${conn.status} (${conn.type})`).jo
 function createServer(): McpServer {
   const server = new McpServer({
     name: SERVER_NAME,
-    version: SERVER_VERSION
+    version: SERVER_VERSION,
   });
-  
+
   // Register all database tools
   registerExecuteQueryTool(server);
   registerGetSchemaTool(server);
@@ -912,7 +1013,7 @@ function createServer(): McpServer {
   registerMonitorPerformanceTool(server);
   registerManageConnectionsTool(server);
   registerServerStatusTool(server);
-  
+
   return server;
 }
 
@@ -922,7 +1023,7 @@ function createServer(): McpServer {
 function setupGracefulShutdown(server: McpServer): void {
   const shutdown = async (signal: string) => {
     console.error(`\nReceived ${signal}, shutting down gracefully...`);
-    
+
     try {
       await server.close();
       console.error('Database server stopped successfully');
@@ -932,17 +1033,17 @@ function setupGracefulShutdown(server: McpServer): void {
       process.exit(1);
     }
   };
-  
+
   process.on('SIGTERM', () => shutdown('SIGTERM'));
   process.on('SIGINT', () => shutdown('SIGINT'));
   process.on('SIGHUP', () => shutdown('SIGHUP'));
-  
-  process.on('uncaughtException', (error) => {
+
+  process.on('uncaughtException', error => {
     console.error('Uncaught exception in database server:', error);
     process.exit(1);
   });
-  
-  process.on('unhandledRejection', (reason) => {
+
+  process.on('unhandledRejection', reason => {
     console.error('Unhandled promise rejection in database server:', reason);
     process.exit(1);
   });
@@ -960,21 +1061,23 @@ async function main(): Promise<void> {
     console.error(`🚀 Starting ${SERVER_NAME} v${SERVER_VERSION}`);
     console.error(`📝 ${SERVER_DESCRIPTION}`);
     console.error('🔌 Transport: stdio');
-    console.error('💾 Tools: query, schema, migrate, backup, restore, monitor, connections, status');
+    console.error(
+      '💾 Tools: query, schema, migrate, backup, restore, monitor, connections, status'
+    );
     console.error('📡 Ready to receive MCP requests...\n');
-    
+
     // Create server
     const server = createServer();
-    
+
     // Setup graceful shutdown
     setupGracefulShutdown(server);
-    
+
     // Create stdio transport
     const transport = new StdioServerTransport();
-    
+
     // Connect server to transport
     await server.connect(transport);
-    
+
     console.error('✅ Database server connected successfully');
     console.error('💡 Available tools:');
     console.error('   • execute_query - Execute SQL queries');
@@ -986,16 +1089,15 @@ async function main(): Promise<void> {
     console.error('   • manage_connections - Manage database connections');
     console.error('   • get_server_status - Get server health and stats');
     console.error('💡 Use Ctrl+C to stop the server\n');
-    
   } catch (error) {
     console.error('💥 Failed to start database server:');
     console.error(error instanceof Error ? error.message : String(error));
-    
+
     if (error instanceof Error && error.stack) {
       console.error('\n🔍 Stack trace:');
       console.error(error.stack);
     }
-    
+
     process.exit(1);
   }
 }
@@ -1006,7 +1108,7 @@ async function main(): Promise<void> {
 
 // Start the server if this file is run directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-  main().catch((error) => {
+  main().catch(error => {
     console.error('💥 Bootstrap error:', error);
     process.exit(1);
   });

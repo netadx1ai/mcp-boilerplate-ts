@@ -199,7 +199,10 @@ function registerLoginTool(server: McpServer) {
         method: z.enum(['email', 'oauth']).describe('Authentication method'),
         email: z.string().email().optional().describe('User email (for email auth)'),
         password: z.string().optional().describe('User password (for email auth)'),
-        provider: z.enum(['google', 'github']).optional().describe('OAuth provider (for oauth auth)'),
+        provider: z
+          .enum(['google', 'github'])
+          .optional()
+          .describe('OAuth provider (for oauth auth)'),
         ipAddress: z.string().default('127.0.0.1').describe('Client IP address'),
         userAgent: z.string().default('MCP Client').describe('Client user agent'),
       },
@@ -210,7 +213,7 @@ function registerLoginTool(server: McpServer) {
         const rateLimitKey = `login:${ipAddress}`;
         const now = Date.now();
         const rateLimit = rateLimits.get(rateLimitKey);
-        
+
         if (rateLimit && rateLimit.count >= 5 && now < rateLimit.resetTime) {
           return {
             content: [
@@ -241,7 +244,7 @@ function registerLoginTool(server: McpServer) {
           if (!user || !user.isActive) {
             // Update rate limiting
             updateRateLimit(rateLimitKey);
-            
+
             loginAttempts.push({
               email,
               ipAddress,
@@ -263,10 +266,10 @@ function registerLoginTool(server: McpServer) {
 
           // Mock password verification (in real implementation, use bcrypt)
           const passwordValid = password === 'demo123'; // Mock validation
-          
+
           if (!passwordValid) {
             updateRateLimit(rateLimitKey);
-            
+
             loginAttempts.push({
               email,
               ipAddress,
@@ -290,7 +293,7 @@ function registerLoginTool(server: McpServer) {
           const sessionId = `sess_${Math.random().toString(36).substr(2, 16)}`;
           const token = `jwt_${Math.random().toString(36).substr(2, 32)}`;
           const refreshToken = `ref_${Math.random().toString(36).substr(2, 32)}`;
-          
+
           const session: Session = {
             id: sessionId,
             userId: user.id,
@@ -320,23 +323,27 @@ function registerLoginTool(server: McpServer) {
             content: [
               {
                 type: 'text',
-                text: JSON.stringify({
-                  success: true,
-                  user: {
-                    id: user.id,
-                    email: user.email,
-                    username: user.username,
-                    roles: user.roles,
-                    profile: user.profile,
+                text: JSON.stringify(
+                  {
+                    success: true,
+                    user: {
+                      id: user.id,
+                      email: user.email,
+                      username: user.username,
+                      roles: user.roles,
+                      profile: user.profile,
+                    },
+                    session: {
+                      id: sessionId,
+                      token,
+                      refreshToken,
+                      expiresAt: session.expiresAt,
+                    },
+                    timestamp: new Date().toISOString(),
                   },
-                  session: {
-                    id: sessionId,
-                    token,
-                    refreshToken,
-                    expiresAt: session.expiresAt,
-                  },
-                  timestamp: new Date().toISOString(),
-                }, null, 2),
+                  null,
+                  2
+                ),
               },
             ],
           };
@@ -375,15 +382,20 @@ function registerLoginTool(server: McpServer) {
             content: [
               {
                 type: 'text',
-                text: JSON.stringify({
-                  success: true,
-                  method: 'oauth',
-                  provider,
-                  authUrl,
-                  state,
-                  instructions: 'Visit the authUrl to complete OAuth authentication, then use the authorization code with the oauth_callback tool.',
-                  timestamp: new Date().toISOString(),
-                }, null, 2),
+                text: JSON.stringify(
+                  {
+                    success: true,
+                    method: 'oauth',
+                    provider,
+                    authUrl,
+                    state,
+                    instructions:
+                      'Visit the authUrl to complete OAuth authentication, then use the authorization code with the oauth_callback tool.',
+                    timestamp: new Date().toISOString(),
+                  },
+                  null,
+                  2
+                ),
               },
             ],
           };
@@ -474,7 +486,7 @@ function registerOAuthCallbackTool(server: McpServer) {
             createdAt: new Date().toISOString(),
             isActive: true,
           };
-          
+
           users.set(user.id, user);
           users.set(`email:${user.email}`, user);
         }
@@ -483,7 +495,7 @@ function registerOAuthCallbackTool(server: McpServer) {
         const sessionId = `sess_${Math.random().toString(36).substr(2, 16)}`;
         const token = `jwt_${Math.random().toString(36).substr(2, 32)}`;
         const refreshToken = `ref_${Math.random().toString(36).substr(2, 32)}`;
-        
+
         const session: Session = {
           id: sessionId,
           userId: user.id,
@@ -506,24 +518,28 @@ function registerOAuthCallbackTool(server: McpServer) {
           content: [
             {
               type: 'text',
-              text: JSON.stringify({
-                success: true,
-                provider,
-                user: {
-                  id: user.id,
-                  email: user.email,
-                  username: user.username,
-                  roles: user.roles,
-                  profile: user.profile,
+              text: JSON.stringify(
+                {
+                  success: true,
+                  provider,
+                  user: {
+                    id: user.id,
+                    email: user.email,
+                    username: user.username,
+                    roles: user.roles,
+                    profile: user.profile,
+                  },
+                  session: {
+                    id: sessionId,
+                    token,
+                    refreshToken,
+                    expiresAt: session.expiresAt,
+                  },
+                  timestamp: new Date().toISOString(),
                 },
-                session: {
-                  id: sessionId,
-                  token,
-                  refreshToken,
-                  expiresAt: session.expiresAt,
-                },
-                timestamp: new Date().toISOString(),
-              }, null, 2),
+                null,
+                2
+              ),
             },
           ],
         };
@@ -553,7 +569,10 @@ function registerValidateTokenTool(server: McpServer) {
       description: 'Validate authentication tokens and refresh if needed',
       inputSchema: {
         token: z.string().describe('Authentication token to validate'),
-        refreshIfExpired: z.boolean().default(true).describe('Automatically refresh if token is expired'),
+        refreshIfExpired: z
+          .boolean()
+          .default(true)
+          .describe('Automatically refresh if token is expired'),
       },
     },
     async ({ token, refreshIfExpired }) => {
@@ -608,12 +627,12 @@ function registerValidateTokenTool(server: McpServer) {
         if (isExpired && refreshIfExpired) {
           newToken = `jwt_${Math.random().toString(36).substr(2, 32)}`;
           newExpiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
-          
+
           // Update session
           session.token = newToken;
           session.expiresAt = newExpiresAt;
           session.lastActivity = new Date().toISOString();
-          
+
           // Update token mapping
           sessions.delete(token);
           sessions.set(newToken, session);
@@ -674,18 +693,23 @@ function registerManageUsersTool(server: McpServer) {
       title: 'Manage Users',
       description: 'Create, update, and manage user accounts and profiles',
       inputSchema: {
-        action: z.enum(['create', 'update', 'delete', 'list', 'get']).describe('User management action'),
+        action: z
+          .enum(['create', 'update', 'delete', 'list', 'get'])
+          .describe('User management action'),
         userId: z.string().optional().describe('User ID (for update/delete/get)'),
         email: z.string().email().optional().describe('User email'),
         username: z.string().optional().describe('Username'),
         password: z.string().optional().describe('Password (for create/update)'),
         roles: z.array(z.string()).optional().describe('User roles'),
-        profile: z.object({
-          firstName: z.string().optional(),
-          lastName: z.string().optional(),
-          avatar: z.string().optional(),
-          preferences: z.record(z.any()).optional(),
-        }).optional().describe('User profile data'),
+        profile: z
+          .object({
+            firstName: z.string().optional(),
+            lastName: z.string().optional(),
+            avatar: z.string().optional(),
+            preferences: z.record(z.any()).optional(),
+          })
+          .optional()
+          .describe('User profile data'),
         isActive: z.boolean().optional().describe('User active status'),
       },
     },
@@ -754,17 +778,21 @@ function registerManageUsersTool(server: McpServer) {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify({
-                    success: true,
-                    action: 'create',
-                    user: {
-                      id: newUser.id,
-                      email: newUser.email,
-                      username: newUser.username,
-                      roles: newUser.roles,
-                      createdAt: newUser.createdAt,
+                  text: JSON.stringify(
+                    {
+                      success: true,
+                      action: 'create',
+                      user: {
+                        id: newUser.id,
+                        email: newUser.email,
+                        username: newUser.username,
+                        roles: newUser.roles,
+                        createdAt: newUser.createdAt,
+                      },
                     },
-                  }, null, 2),
+                    null,
+                    2
+                  ),
                 },
               ],
             };
@@ -808,17 +836,21 @@ function registerManageUsersTool(server: McpServer) {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify({
-                    success: true,
-                    action: 'update',
-                    user: {
-                      id: user.id,
-                      email: user.email,
-                      username: user.username,
-                      roles: user.roles,
-                      isActive: user.isActive,
+                  text: JSON.stringify(
+                    {
+                      success: true,
+                      action: 'update',
+                      user: {
+                        id: user.id,
+                        email: user.email,
+                        username: user.username,
+                        roles: user.roles,
+                        isActive: user.isActive,
+                      },
                     },
-                  }, null, 2),
+                    null,
+                    2
+                  ),
                 },
               ],
             };
@@ -841,12 +873,16 @@ function registerManageUsersTool(server: McpServer) {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify({
-                    success: true,
-                    action: 'list',
-                    users: userList,
-                    total: userList.length,
-                  }, null, 2),
+                  text: JSON.stringify(
+                    {
+                      success: true,
+                      action: 'list',
+                      users: userList,
+                      total: userList.length,
+                    },
+                    null,
+                    2
+                  ),
                 },
               ],
             };
@@ -882,20 +918,24 @@ function registerManageUsersTool(server: McpServer) {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify({
-                    success: true,
-                    action: 'get',
-                    user: {
-                      id: user.id,
-                      email: user.email,
-                      username: user.username,
-                      roles: user.roles,
-                      profile: user.profile,
-                      createdAt: user.createdAt,
-                      lastLogin: user.lastLogin,
-                      isActive: user.isActive,
+                  text: JSON.stringify(
+                    {
+                      success: true,
+                      action: 'get',
+                      user: {
+                        id: user.id,
+                        email: user.email,
+                        username: user.username,
+                        roles: user.roles,
+                        profile: user.profile,
+                        createdAt: user.createdAt,
+                        lastLogin: user.lastLogin,
+                        isActive: user.isActive,
+                      },
                     },
-                  }, null, 2),
+                    null,
+                    2
+                  ),
                 },
               ],
             };
@@ -937,7 +977,9 @@ function registerManageSessionsTool(server: McpServer) {
       title: 'Manage Sessions',
       description: 'Manage user sessions, including listing, revoking, and cleanup',
       inputSchema: {
-        action: z.enum(['list', 'revoke', 'revoke_all', 'cleanup', 'get']).describe('Session management action'),
+        action: z
+          .enum(['list', 'revoke', 'revoke_all', 'cleanup', 'get'])
+          .describe('Session management action'),
         sessionId: z.string().optional().describe('Session ID (for specific operations)'),
         userId: z.string().optional().describe('User ID (for user-specific operations)'),
         token: z.string().optional().describe('Token (for token-based operations)'),
@@ -948,13 +990,15 @@ function registerManageSessionsTool(server: McpServer) {
         switch (action) {
           case 'list': {
             let sessionsToShow: Session[];
-            
+
             if (userId) {
-              sessionsToShow = Array.from(sessions.values())
-                .filter(session => session.userId === userId);
+              sessionsToShow = Array.from(sessions.values()).filter(
+                session => session.userId === userId
+              );
             } else {
-              sessionsToShow = Array.from(sessions.values())
-                .filter(session => typeof session.id === 'string');
+              sessionsToShow = Array.from(sessions.values()).filter(
+                session => typeof session.id === 'string'
+              );
             }
 
             const sessionList = sessionsToShow.map(session => {
@@ -975,13 +1019,17 @@ function registerManageSessionsTool(server: McpServer) {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify({
-                    success: true,
-                    action: 'list',
-                    sessions: sessionList,
-                    total: sessionList.length,
-                    ...(userId && { filteredByUser: userId }),
-                  }, null, 2),
+                  text: JSON.stringify(
+                    {
+                      success: true,
+                      action: 'list',
+                      sessions: sessionList,
+                      total: sessionList.length,
+                      ...(userId && { filteredByUser: userId }),
+                    },
+                    null,
+                    2
+                  ),
                 },
               ],
             };
@@ -1000,9 +1048,7 @@ function registerManageSessionsTool(server: McpServer) {
               };
             }
 
-            const targetSession = sessionId 
-              ? sessions.get(sessionId)
-              : sessions.get(token!);
+            const targetSession = sessionId ? sessions.get(sessionId) : sessions.get(token!);
 
             if (!targetSession) {
               return {
@@ -1024,13 +1070,17 @@ function registerManageSessionsTool(server: McpServer) {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify({
-                    success: true,
-                    action: 'revoke',
-                    sessionId: targetSession.id,
-                    userId: targetSession.userId,
-                    timestamp: new Date().toISOString(),
-                  }, null, 2),
+                  text: JSON.stringify(
+                    {
+                      success: true,
+                      action: 'revoke',
+                      sessionId: targetSession.id,
+                      userId: targetSession.userId,
+                      timestamp: new Date().toISOString(),
+                    },
+                    null,
+                    2
+                  ),
                 },
               ],
             };
@@ -1049,8 +1099,9 @@ function registerManageSessionsTool(server: McpServer) {
               };
             }
 
-            const userSessions = Array.from(sessions.values())
-              .filter(session => session.userId === userId);
+            const userSessions = Array.from(sessions.values()).filter(
+              session => session.userId === userId
+            );
 
             for (const session of userSessions) {
               sessions.delete(session.id);
@@ -1061,13 +1112,17 @@ function registerManageSessionsTool(server: McpServer) {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify({
-                    success: true,
-                    action: 'revoke_all',
-                    userId,
-                    revokedSessions: userSessions.length,
-                    timestamp: new Date().toISOString(),
-                  }, null, 2),
+                  text: JSON.stringify(
+                    {
+                      success: true,
+                      action: 'revoke_all',
+                      userId,
+                      revokedSessions: userSessions.length,
+                      timestamp: new Date().toISOString(),
+                    },
+                    null,
+                    2
+                  ),
                 },
               ],
             };
@@ -1075,8 +1130,9 @@ function registerManageSessionsTool(server: McpServer) {
 
           case 'cleanup': {
             const now = new Date();
-            const expiredSessions = Array.from(sessions.values())
-              .filter(session => now > new Date(session.expiresAt));
+            const expiredSessions = Array.from(sessions.values()).filter(
+              session => now > new Date(session.expiresAt)
+            );
 
             for (const session of expiredSessions) {
               sessions.delete(session.id);
@@ -1087,13 +1143,17 @@ function registerManageSessionsTool(server: McpServer) {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify({
-                    success: true,
-                    action: 'cleanup',
-                    cleanedSessions: expiredSessions.length,
-                    remainingSessions: sessions.size / 2, // Divide by 2 because each session is stored twice
-                    timestamp: new Date().toISOString(),
-                  }, null, 2),
+                  text: JSON.stringify(
+                    {
+                      success: true,
+                      action: 'cleanup',
+                      cleanedSessions: expiredSessions.length,
+                      remainingSessions: sessions.size / 2, // Divide by 2 because each session is stored twice
+                      timestamp: new Date().toISOString(),
+                    },
+                    null,
+                    2
+                  ),
                 },
               ],
             };
@@ -1197,15 +1257,21 @@ function registerCheckPermissionsTool(server: McpServer) {
           switch (action) {
             case 'read':
               hasPermission = user.roles.includes('user') || user.roles.includes('reader');
-              reasoning.push(`Read access: ${hasPermission ? 'granted' : 'denied'} for roles: ${user.roles.join(', ')}`);
+              reasoning.push(
+                `Read access: ${hasPermission ? 'granted' : 'denied'} for roles: ${user.roles.join(', ')}`
+              );
               break;
             case 'write':
               hasPermission = user.roles.includes('editor') || user.roles.includes('writer');
-              reasoning.push(`Write access: ${hasPermission ? 'granted' : 'denied'} for roles: ${user.roles.join(', ')}`);
+              reasoning.push(
+                `Write access: ${hasPermission ? 'granted' : 'denied'} for roles: ${user.roles.join(', ')}`
+              );
               break;
             case 'delete':
               hasPermission = user.roles.includes('editor') || user.roles.includes('moderator');
-              reasoning.push(`Delete access: ${hasPermission ? 'granted' : 'denied'} for roles: ${user.roles.join(', ')}`);
+              reasoning.push(
+                `Delete access: ${hasPermission ? 'granted' : 'denied'} for roles: ${user.roles.join(', ')}`
+              );
               break;
             case 'admin':
               hasPermission = false; // Already checked admin role above
@@ -1264,7 +1330,9 @@ function registerSecurityAuditTool(server: McpServer) {
       title: 'Security Audit',
       description: 'Monitor security events and generate audit reports',
       inputSchema: {
-        action: z.enum(['login_attempts', 'active_sessions', 'security_report', 'suspicious_activity']).describe('Audit action'),
+        action: z
+          .enum(['login_attempts', 'active_sessions', 'security_report', 'suspicious_activity'])
+          .describe('Audit action'),
         timeRange: z.number().default(24).describe('Time range in hours'),
         userId: z.string().optional().describe('Filter by user ID'),
         includeDetails: z.boolean().default(false).describe('Include detailed information'),
@@ -1276,8 +1344,8 @@ function registerSecurityAuditTool(server: McpServer) {
 
         switch (action) {
           case 'login_attempts': {
-            let attempts = loginAttempts.filter(attempt => 
-              new Date(attempt.timestamp) > cutoffTime
+            let attempts = loginAttempts.filter(
+              attempt => new Date(attempt.timestamp) > cutoffTime
             );
 
             if (userId) {
@@ -1299,13 +1367,17 @@ function registerSecurityAuditTool(server: McpServer) {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify({
-                    success: true,
-                    action: 'login_attempts',
-                    timeRange: `${timeRange}h`,
-                    statistics: stats,
-                    ...(includeDetails && { attempts: attempts.slice(-20) }),
-                  }, null, 2),
+                  text: JSON.stringify(
+                    {
+                      success: true,
+                      action: 'login_attempts',
+                      timeRange: `${timeRange}h`,
+                      statistics: stats,
+                      ...(includeDetails && { attempts: attempts.slice(-20) }),
+                    },
+                    null,
+                    2
+                  ),
                 },
               ],
             };
@@ -1316,7 +1388,7 @@ function registerSecurityAuditTool(server: McpServer) {
             const activeSessions = Array.from(sessions.values())
               .filter(session => typeof session.id === 'string' && session.id.startsWith('sess_'))
               .filter(session => now < new Date(session.expiresAt))
-              .filter(session => userId ? session.userId === userId : true);
+              .filter(session => (userId ? session.userId === userId : true));
 
             const sessionData = activeSessions.map(session => {
               const user = users.get(session.userId);
@@ -1336,43 +1408,54 @@ function registerSecurityAuditTool(server: McpServer) {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify({
-                    success: true,
-                    action: 'active_sessions',
-                    activeSessions: sessionData.length,
-                    ...(includeDetails && { sessions: sessionData }),
-                    ...(userId && { filteredByUser: userId }),
-                  }, null, 2),
+                  text: JSON.stringify(
+                    {
+                      success: true,
+                      action: 'active_sessions',
+                      activeSessions: sessionData.length,
+                      ...(includeDetails && { sessions: sessionData }),
+                      ...(userId && { filteredByUser: userId }),
+                    },
+                    null,
+                    2
+                  ),
                 },
               ],
             };
           }
 
           case 'security_report': {
-            const failedAttempts = loginAttempts.filter(a => !a.success && new Date(a.timestamp) > cutoffTime);
+            const failedAttempts = loginAttempts.filter(
+              a => !a.success && new Date(a.timestamp) > cutoffTime
+            );
             const suspiciousIps = Object.entries(
-              failedAttempts.reduce((acc, attempt) => {
-                acc[attempt.ipAddress] = (acc[attempt.ipAddress] || 0) + 1;
-                return acc;
-              }, {} as Record<string, number>)
+              failedAttempts.reduce(
+                (acc, attempt) => {
+                  acc[attempt.ipAddress] = (acc[attempt.ipAddress] || 0) + 1;
+                  return acc;
+                },
+                {} as Record<string, number>
+              )
             ).filter(([, count]) => count >= 3);
 
             const report = {
               timeRange: `${timeRange}h`,
               summary: {
-                totalLoginAttempts: loginAttempts.filter(a => new Date(a.timestamp) > cutoffTime).length,
+                totalLoginAttempts: loginAttempts.filter(a => new Date(a.timestamp) > cutoffTime)
+                  .length,
                 failedLoginAttempts: failedAttempts.length,
-                activeSessions: Array.from(sessions.values()).filter(s => 
-                  new Date() < new Date(s.expiresAt) && s.id.startsWith('sess_')
+                activeSessions: Array.from(sessions.values()).filter(
+                  s => new Date() < new Date(s.expiresAt) && s.id.startsWith('sess_')
                 ).length,
                 suspiciousIpCount: suspiciousIps.length,
               },
               threats: {
                 bruteForceAttempts: suspiciousIps.length,
                 suspiciousIps: suspiciousIps.map(([ip, count]) => ({ ip, failedAttempts: count })),
-                recommendations: suspiciousIps.length > 0 
-                  ? ['Consider implementing IP blocking', 'Enable account lockout policies']
-                  : ['No immediate security concerns detected'],
+                recommendations:
+                  suspiciousIps.length > 0
+                    ? ['Consider implementing IP blocking', 'Enable account lockout policies']
+                    : ['No immediate security concerns detected'],
               },
             };
 
@@ -1380,11 +1463,15 @@ function registerSecurityAuditTool(server: McpServer) {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify({
-                    success: true,
-                    action: 'security_report',
-                    report,
-                  }, null, 2),
+                  text: JSON.stringify(
+                    {
+                      success: true,
+                      action: 'security_report',
+                      report,
+                    },
+                    null,
+                    2
+                  ),
                 },
               ],
             };
@@ -1453,20 +1540,24 @@ function registerStatusTool(server: McpServer) {
           (status as any).users = {
             total: activeUsers.length,
             active: activeUsers.filter(user => user.lastLogin).length,
-            byRole: activeUsers.reduce((acc, user) => {
-              user.roles.forEach(role => {
-                acc[role] = (acc[role] || 0) + 1;
-              });
-              return acc;
-            }, {} as Record<string, number>),
+            byRole: activeUsers.reduce(
+              (acc, user) => {
+                user.roles.forEach(role => {
+                  acc[role] = (acc[role] || 0) + 1;
+                });
+                return acc;
+              },
+              {} as Record<string, number>
+            ),
           };
         }
 
         if (includeSessions) {
           const now = new Date();
-          const allSessions = Array.from(sessions.values())
-            .filter(session => typeof session.id === 'string' && session.id.startsWith('sess_'));
-          
+          const allSessions = Array.from(sessions.values()).filter(
+            session => typeof session.id === 'string' && session.id.startsWith('sess_')
+          );
+
           const activeSessions = allSessions.filter(session => now < new Date(session.expiresAt));
 
           (status as any).sessions = {
@@ -1477,16 +1568,17 @@ function registerStatusTool(server: McpServer) {
         }
 
         if (includeSecurity) {
-          const recentAttempts = loginAttempts.filter(attempt => 
-            new Date(attempt.timestamp) > new Date(Date.now() - 24 * 60 * 60 * 1000)
+          const recentAttempts = loginAttempts.filter(
+            attempt => new Date(attempt.timestamp) > new Date(Date.now() - 24 * 60 * 60 * 1000)
           );
 
           (status as any).security = {
             loginAttempts24h: recentAttempts.length,
             failedAttempts24h: recentAttempts.filter(a => !a.success).length,
-            successRate: recentAttempts.length > 0 
-              ? `${Math.floor((recentAttempts.filter(a => a.success).length / recentAttempts.length) * 100)}%`
-              : '100%',
+            successRate:
+              recentAttempts.length > 0
+                ? `${Math.floor((recentAttempts.filter(a => a.success).length / recentAttempts.length) * 100)}%`
+                : '100%',
             uniqueIps24h: new Set(recentAttempts.map(a => a.ipAddress)).size,
           };
         }
@@ -1522,7 +1614,7 @@ function updateRateLimit(key: string): void {
   const now = Date.now();
   const windowStart = Math.floor(now / (60 * 1000)) * (60 * 1000); // 1-minute windows
   const rateLimit = rateLimits.get(key);
-  
+
   if (!rateLimit || now >= rateLimit.resetTime) {
     rateLimits.set(key, {
       count: 1,
@@ -1535,27 +1627,27 @@ function updateRateLimit(key: string): void {
 
 function validatePassword(password: string): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
-  
+
   if (password.length < authConfig.passwordPolicy.minLength) {
     errors.push(`Password must be at least ${authConfig.passwordPolicy.minLength} characters long`);
   }
-  
+
   if (authConfig.passwordPolicy.requireUppercase && !/[A-Z]/.test(password)) {
     errors.push('Password must contain at least one uppercase letter');
   }
-  
+
   if (authConfig.passwordPolicy.requireLowercase && !/[a-z]/.test(password)) {
     errors.push('Password must contain at least one lowercase letter');
   }
-  
+
   if (authConfig.passwordPolicy.requireNumbers && !/\d/.test(password)) {
     errors.push('Password must contain at least one number');
   }
-  
+
   if (authConfig.passwordPolicy.requireSpecialChars && !/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
     errors.push('Password must contain at least one special character');
   }
-  
+
   return {
     valid: errors.length === 0,
     errors,
@@ -1632,7 +1724,9 @@ async function main(): Promise<void> {
     console.error(`🚀 Starting ${SERVER_NAME} v${SERVER_VERSION}`);
     console.error(`📝 ${SERVER_DESCRIPTION}`);
     console.error('🔌 Transport: stdio');
-    console.error('🛠️ Tools: login, oauth_callback, validate_token, manage_users, manage_sessions, check_permissions, security_audit, get_server_status');
+    console.error(
+      '🛠️ Tools: login, oauth_callback, validate_token, manage_users, manage_sessions, check_permissions, security_audit, get_server_status'
+    );
     console.error('📡 Ready to receive MCP requests...\n');
 
     // Create server

@@ -77,10 +77,10 @@ const mockAuthConfigs: Record<string, AuthConfig> = {
   },
   'oauth-service': {
     type: 'oauth',
-    credentials: { 
+    credentials: {
       clientId: 'demo-client-id',
       clientSecret: 'demo-client-secret',
-      redirectUri: 'http://localhost:3000/callback'
+      redirectUri: 'http://localhost:3000/callback',
     },
   },
 };
@@ -103,7 +103,9 @@ function registerConfigureAuthTool(server: McpServer) {
       description: 'Setup authentication configuration for external API access',
       inputSchema: {
         apiName: z.string().describe('Name/identifier for the API'),
-        authType: z.enum(['api-key', 'oauth', 'jwt', 'basic', 'bearer']).describe('Authentication method'),
+        authType: z
+          .enum(['api-key', 'oauth', 'jwt', 'basic', 'bearer'])
+          .describe('Authentication method'),
         credentials: z.record(z.string()).describe('Authentication credentials (key-value pairs)'),
         testEndpoint: z.string().optional().describe('Optional endpoint to test authentication'),
       },
@@ -171,7 +173,10 @@ function registerMakeRequestTool(server: McpServer) {
       inputSchema: {
         apiName: z.string().describe('API name (must be configured first)'),
         endpoint: z.string().describe('API endpoint path'),
-        method: z.enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']).default('GET').describe('HTTP method'),
+        method: z
+          .enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])
+          .default('GET')
+          .describe('HTTP method'),
         headers: z.record(z.string()).optional().describe('Additional headers'),
         body: z.any().optional().describe('Request body for POST/PUT/PATCH'),
         useCache: z.boolean().default(true).describe('Use response caching'),
@@ -198,8 +203,12 @@ function registerMakeRequestTool(server: McpServer) {
         const rateLimitKey = `${apiName}:${method}:${endpoint}`;
         const now = Date.now();
         const rateLimit = rateLimitTracker.get(rateLimitKey);
-        
-        if (rateLimit && rateLimit.count >= mockApiConfig.rateLimit.requests && now < rateLimit.resetTime) {
+
+        if (
+          rateLimit &&
+          rateLimit.count >= mockApiConfig.rateLimit.requests &&
+          now < rateLimit.resetTime
+        ) {
           return {
             content: [
               {
@@ -220,12 +229,16 @@ function registerMakeRequestTool(server: McpServer) {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify({
-                    success: true,
-                    cached: true,
-                    data: cached.data,
-                    cacheAge: `${Math.floor((now - cached.timestamp) / 1000)}s`,
-                  }, null, 2),
+                  text: JSON.stringify(
+                    {
+                      success: true,
+                      cached: true,
+                      data: cached.data,
+                      cacheAge: `${Math.floor((now - cached.timestamp) / 1000)}s`,
+                    },
+                    null,
+                    2
+                  ),
                 },
               ],
             };
@@ -233,7 +246,8 @@ function registerMakeRequestTool(server: McpServer) {
         }
 
         // Update rate limiting
-        const windowStart = Math.floor(now / mockApiConfig.rateLimit.windowMs) * mockApiConfig.rateLimit.windowMs;
+        const windowStart =
+          Math.floor(now / mockApiConfig.rateLimit.windowMs) * mockApiConfig.rateLimit.windowMs;
         rateLimitTracker.set(rateLimitKey, {
           count: (rateLimit?.count || 0) + 1,
           resetTime: windowStart + mockApiConfig.rateLimit.windowMs,
@@ -318,11 +332,15 @@ function registerRateLimitTool(server: McpServer) {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify({
-                    currentLimits: allLimits,
-                    globalConfig: mockApiConfig.rateLimit,
-                    timestamp: new Date().toISOString(),
-                  }, null, 2),
+                  text: JSON.stringify(
+                    {
+                      currentLimits: allLimits,
+                      globalConfig: mockApiConfig.rateLimit,
+                      timestamp: new Date().toISOString(),
+                    },
+                    null,
+                    2
+                  ),
                 },
               ],
             };
@@ -340,11 +358,15 @@ function registerRateLimitTool(server: McpServer) {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify({
-                    success: true,
-                    message: 'Rate limit configuration updated',
-                    newConfig: mockApiConfig.rateLimit,
-                  }, null, 2),
+                  text: JSON.stringify(
+                    {
+                      success: true,
+                      message: 'Rate limit configuration updated',
+                      newConfig: mockApiConfig.rateLimit,
+                    },
+                    null,
+                    2
+                  ),
                 },
               ],
             };
@@ -353,20 +375,25 @@ function registerRateLimitTool(server: McpServer) {
           case 'reset': {
             if (apiName) {
               // Reset specific API rate limits
-              const keysToDelete = Array.from(rateLimitTracker.keys())
-                .filter(key => key.startsWith(`${apiName}:`));
-              
+              const keysToDelete = Array.from(rateLimitTracker.keys()).filter(key =>
+                key.startsWith(`${apiName}:`)
+              );
+
               keysToDelete.forEach(key => rateLimitTracker.delete(key));
 
               return {
                 content: [
                   {
                     type: 'text',
-                    text: JSON.stringify({
-                      success: true,
-                      message: `Rate limits reset for API: ${apiName}`,
-                      resetCount: keysToDelete.length,
-                    }, null, 2),
+                    text: JSON.stringify(
+                      {
+                        success: true,
+                        message: `Rate limits reset for API: ${apiName}`,
+                        resetCount: keysToDelete.length,
+                      },
+                      null,
+                      2
+                    ),
                   },
                 ],
               };
@@ -379,11 +406,15 @@ function registerRateLimitTool(server: McpServer) {
                 content: [
                   {
                     type: 'text',
-                    text: JSON.stringify({
-                      success: true,
-                      message: 'All rate limits reset',
-                      resetCount: count,
-                    }, null, 2),
+                    text: JSON.stringify(
+                      {
+                        success: true,
+                        message: 'All rate limits reset',
+                        resetCount: count,
+                      },
+                      null,
+                      2
+                    ),
                   },
                 ],
               };
@@ -427,8 +458,13 @@ function registerTransformRequestTool(server: McpServer) {
       description: 'Transform and validate request data before sending to external API',
       inputSchema: {
         data: z.any().describe('Request data to transform'),
-        transformType: z.enum(['camelToSnake', 'snakeToCamel', 'upperCase', 'lowerCase', 'custom']).describe('Transformation type'),
-        customRules: z.record(z.string()).optional().describe('Custom transformation rules (key: originalField, value: newField)'),
+        transformType: z
+          .enum(['camelToSnake', 'snakeToCamel', 'upperCase', 'lowerCase', 'custom'])
+          .describe('Transformation type'),
+        customRules: z
+          .record(z.string())
+          .optional()
+          .describe('Custom transformation rules (key: originalField, value: newField)'),
         validate: z.boolean().default(true).describe('Validate transformed data'),
         schema: z.any().optional().describe('Validation schema for transformed data'),
       },
@@ -520,7 +556,10 @@ function registerTransformResponseTool(server: McpServer) {
         response: z.any().describe('API response data to transform'),
         extractFields: z.array(z.string()).optional().describe('Specific fields to extract'),
         flatten: z.boolean().default(false).describe('Flatten nested objects'),
-        format: z.enum(['json', 'csv', 'table', 'summary']).default('json').describe('Output format'),
+        format: z
+          .enum(['json', 'csv', 'table', 'summary'])
+          .default('json')
+          .describe('Output format'),
       },
     },
     async ({ response, extractFields, flatten, format }) => {
@@ -617,7 +656,10 @@ function registerManageCacheTool(server: McpServer) {
                 data: entry.data,
                 age: Math.floor((Date.now() - entry.timestamp) / 1000),
                 ttl: entry.ttl,
-                expiresIn: Math.max(0, entry.ttl - Math.floor((Date.now() - entry.timestamp) / 1000)),
+                expiresIn: Math.max(
+                  0,
+                  entry.ttl - Math.floor((Date.now() - entry.timestamp) / 1000)
+                ),
               };
 
               return {
@@ -654,10 +696,16 @@ function registerManageCacheTool(server: McpServer) {
                 content: [
                   {
                     type: 'text',
-                    text: JSON.stringify({
-                      success: true,
-                      message: deleted ? `Cache entry cleared: ${key}` : `Cache entry not found: ${key}`,
-                    }, null, 2),
+                    text: JSON.stringify(
+                      {
+                        success: true,
+                        message: deleted
+                          ? `Cache entry cleared: ${key}`
+                          : `Cache entry not found: ${key}`,
+                      },
+                      null,
+                      2
+                    ),
                   },
                 ],
               };
@@ -668,11 +716,15 @@ function registerManageCacheTool(server: McpServer) {
                 content: [
                   {
                     type: 'text',
-                    text: JSON.stringify({
-                      success: true,
-                      message: `All cache entries cleared`,
-                      clearedCount: count,
-                    }, null, 2),
+                    text: JSON.stringify(
+                      {
+                        success: true,
+                        message: `All cache entries cleared`,
+                        clearedCount: count,
+                      },
+                      null,
+                      2
+                    ),
                   },
                 ],
               };
@@ -684,10 +736,17 @@ function registerManageCacheTool(server: McpServer) {
             const entries = Array.from(requestCache.entries());
             const stats = {
               totalEntries: entries.length,
-              totalSize: entries.reduce((sum, [, entry]) => sum + JSON.stringify(entry.data).length, 0),
-              expired: entries.filter(([, entry]) => now - entry.timestamp > entry.ttl * 1000).length,
+              totalSize: entries.reduce(
+                (sum, [, entry]) => sum + JSON.stringify(entry.data).length,
+                0
+              ),
+              expired: entries.filter(([, entry]) => now - entry.timestamp > entry.ttl * 1000)
+                .length,
               hitRate: '75%', // Mock hit rate
-              oldestEntry: entries.length > 0 ? Math.min(...entries.map(([, entry]) => entry.timestamp)) : null,
+              oldestEntry:
+                entries.length > 0
+                  ? Math.min(...entries.map(([, entry]) => entry.timestamp))
+                  : null,
             };
 
             return {
@@ -760,8 +819,9 @@ function registerMonitorApiTool(server: McpServer) {
           };
 
           if (includeMetrics) {
-            const apiRateLimits = Array.from(rateLimitTracker.entries())
-              .filter(([key]) => key.startsWith(`${api}:`));
+            const apiRateLimits = Array.from(rateLimitTracker.entries()).filter(([key]) =>
+              key.startsWith(`${api}:`)
+            );
 
             (healthData as any).metrics = {
               requestCount: apiRateLimits.reduce((sum, [, data]) => sum + data.count, 0),
@@ -787,11 +847,15 @@ function registerMonitorApiTool(server: McpServer) {
           content: [
             {
               type: 'text',
-              text: JSON.stringify({
-                totalApis: apisToMonitor.length,
-                healthResults,
-                timestamp: new Date().toISOString(),
-              }, null, 2),
+              text: JSON.stringify(
+                {
+                  totalApis: apisToMonitor.length,
+                  healthResults,
+                  timestamp: new Date().toISOString(),
+                },
+                null,
+                2
+              ),
             },
           ],
         };
@@ -859,8 +923,10 @@ function registerStatusTool(server: McpServer) {
         if (includeCache) {
           (status as any).cache = {
             entries: requestCache.size,
-            totalSize: Array.from(requestCache.values())
-              .reduce((sum, entry) => sum + JSON.stringify(entry.data).length, 0),
+            totalSize: Array.from(requestCache.values()).reduce(
+              (sum, entry) => sum + JSON.stringify(entry.data).length,
+              0
+            ),
             hitRate: '75%', // Mock hit rate
           };
         }
@@ -869,8 +935,10 @@ function registerStatusTool(server: McpServer) {
           (status as any).rateLimit = {
             globalConfig: mockApiConfig.rateLimit,
             activeTrackers: rateLimitTracker.size,
-            totalRequests: Array.from(rateLimitTracker.values())
-              .reduce((sum, data) => sum + data.count, 0),
+            totalRequests: Array.from(rateLimitTracker.values()).reduce(
+              (sum, data) => sum + data.count,
+              0
+            ),
           };
         }
 
@@ -953,17 +1021,17 @@ function extractFieldsFromObject(obj: any, fields: string[]): any {
 
 function flattenObject(obj: any, prefix = ''): any {
   const flattened: any = {};
-  
+
   for (const [key, value] of Object.entries(obj)) {
     const newKey = prefix ? `${prefix}.${key}` : key;
-    
+
     if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
       Object.assign(flattened, flattenObject(value, newKey));
     } else {
       flattened[newKey] = value;
     }
   }
-  
+
   return flattened;
 }
 
@@ -972,7 +1040,7 @@ function objectToCsv(obj: any): string {
     const headers = Object.keys(obj[0] || {});
     const csvRows = [
       headers.join(','),
-      ...obj.map((row: any) => headers.map(header => String(row[header] || '')).join(','))
+      ...obj.map((row: any) => headers.map(header => String(row[header] || '')).join(',')),
     ];
     return csvRows.join('\n');
   } else {
@@ -984,16 +1052,16 @@ function objectToCsv(obj: any): string {
 function objectToTable(obj: any): string {
   if (Array.isArray(obj)) {
     const headers = Object.keys(obj[0] || {});
-    const maxWidths = headers.map(header => 
+    const maxWidths = headers.map(header =>
       Math.max(header.length, ...obj.map((row: any) => String(row[header] || '').length))
     );
-    
+
     const headerRow = headers.map((header, i) => header.padEnd(maxWidths[i])).join(' | ');
     const separator = maxWidths.map(width => '-'.repeat(width)).join(' | ');
-    const dataRows = obj.map((row: any) => 
+    const dataRows = obj.map((row: any) =>
       headers.map((header, i) => String(row[header] || '').padEnd(maxWidths[i])).join(' | ')
     );
-    
+
     return [headerRow, separator, ...dataRows].join('\n');
   } else {
     const entries = Object.entries(obj);
@@ -1004,7 +1072,7 @@ function objectToTable(obj: any): string {
 
 function generateSummary(obj: any): string {
   let summary = 'Data Summary:\n';
-  
+
   if (Array.isArray(obj)) {
     summary += `• Type: Array with ${obj.length} items\n`;
     if (obj.length > 0) {
@@ -1021,7 +1089,7 @@ function generateSummary(obj: any): string {
     summary += `• Type: ${typeof obj}\n`;
     summary += `• Value: ${String(obj)}\n`;
   }
-  
+
   return summary;
 }
 
@@ -1095,7 +1163,9 @@ async function main(): Promise<void> {
     console.error(`🚀 Starting ${SERVER_NAME} v${SERVER_VERSION}`);
     console.error(`📝 ${SERVER_DESCRIPTION}`);
     console.error('🔌 Transport: stdio');
-    console.error('🛠️ Tools: configure_auth, make_request, manage_rate_limits, transform_request, transform_response, manage_cache, monitor_api_health, get_server_status');
+    console.error(
+      '🛠️ Tools: configure_auth, make_request, manage_rate_limits, transform_request, transform_response, manage_cache, monitor_api_health, get_server_status'
+    );
     console.error('📡 Ready to receive MCP requests...\n');
 
     // Create server

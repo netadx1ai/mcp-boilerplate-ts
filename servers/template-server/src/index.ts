@@ -2,11 +2,11 @@
 
 /**
  * @fileoverview Template Server - Production MCP Server for Template and Scaffolding Operations
- * 
+ *
  * A comprehensive MCP server that provides template generation, scaffolding,
  * and code generation tools. Supports multiple template types, project
  * scaffolding, and automated code generation workflows.
- * 
+ *
  * Features:
  * - Official @modelcontextprotocol/sdk integration
  * - 7 template tools: generate, scaffold, config, test, docs, list, validate, status
@@ -17,7 +17,7 @@
  * - Documentation generation
  * - Template validation
  * - Performance monitoring and statistics
- * 
+ *
  * @author MCP Boilerplate Team
  * @version 1.0.0
  */
@@ -71,7 +71,7 @@ const serverStats: ServerStats = {
   totalRequests: 0,
   toolUsage: {},
   startTime: new Date().toISOString(),
-  uptime: 0
+  uptime: 0,
 };
 
 // =============================================================================
@@ -85,7 +85,7 @@ function updateStats(toolName: string, templateType?: string): void {
   serverStats.totalRequests++;
   serverStats.toolUsage[toolName] = (serverStats.toolUsage[toolName] || 0) + 1;
   serverStats.uptime = process.uptime();
-  
+
   if (toolName === 'generate_template' && templateType) {
     serverStats.templatesGenerated++;
     serverStats.lastTemplateType = templateType;
@@ -201,7 +201,7 @@ export default ${config.name};`,
   }
 }`,
 
-    'dockerfile': `# ${config.name} Dockerfile
+    dockerfile: `# ${config.name} Dockerfile
 FROM node:18-alpine
 
 WORKDIR /app
@@ -288,7 +288,7 @@ jobs:
   transform: {
     '^.+\\.ts$': ['ts-jest', { useESM: true }]
   }
-};`
+};`,
   };
 
   return templates[templateType] || `# ${config.name}\n\nGenerated template for ${templateType}`;
@@ -308,17 +308,40 @@ function registerGenerateTemplateTool(server: McpServer) {
       title: 'Generate Template',
       description: 'Generate code templates for various frameworks and languages',
       inputSchema: {
-        templateType: z.enum(['react-component', 'express-api', 'typescript-class', 'package-json', 'dockerfile', 'github-workflow', 'jest-config']).describe('Type of template to generate'),
+        templateType: z
+          .enum([
+            'react-component',
+            'express-api',
+            'typescript-class',
+            'package-json',
+            'dockerfile',
+            'github-workflow',
+            'jest-config',
+          ])
+          .describe('Type of template to generate'),
         name: z.string().describe('Name for the generated template'),
-        language: z.enum(['typescript', 'javascript', 'python', 'rust', 'go']).optional().default('typescript').describe('Programming language for the template'),
-        framework: z.string().optional().describe('Framework to use (React, Express, FastAPI, etc.)'),
-        features: z.array(z.string()).optional().default([]).describe('Features to include in the template')
-      }
+        language: z
+          .enum(['typescript', 'javascript', 'python', 'rust', 'go'])
+          .optional()
+          .default('typescript')
+          .describe('Programming language for the template'),
+        framework: z
+          .string()
+          .optional()
+          .describe('Framework to use (React, Express, FastAPI, etc.)'),
+        features: z
+          .array(z.string())
+          .optional()
+          .default([])
+          .describe('Features to include in the template'),
+      },
     },
     async ({ templateType, name, language = 'typescript', framework, features = [] }) => {
       updateStats('generate_template', templateType);
-      
-      console.error(`🛠️ Template generation: type='${templateType}', name='${name}', language='${language}'`);
+
+      console.error(
+        `🛠️ Template generation: type='${templateType}', name='${name}', language='${language}'`
+      );
 
       const config: TemplateConfig = {
         name,
@@ -327,7 +350,7 @@ function registerGenerateTemplateTool(server: McpServer) {
         language,
         features,
         dependencies: [],
-        devDependencies: []
+        devDependencies: [],
       };
 
       const content = generateTemplateContent(templateType, config);
@@ -351,10 +374,12 @@ ${content}
 **Generated at:** ${new Date().toISOString()}`;
 
       return {
-        content: [{
-          type: 'text',
-          text: summary
-        }]
+        content: [
+          {
+            type: 'text',
+            text: summary,
+          },
+        ],
       };
     }
   );
@@ -371,16 +396,29 @@ function registerScaffoldProjectTool(server: McpServer) {
       description: 'Create complete project structure with scaffolding',
       inputSchema: {
         projectName: z.string().describe('Name of the project'),
-        templateType: z.enum(['express-api', 'react-app', 'typescript-library']).describe('Type of project template'),
+        templateType: z
+          .enum(['express-api', 'react-app', 'typescript-library'])
+          .describe('Type of project template'),
         includeTests: z.boolean().optional().default(true).describe('Include test setup'),
         includeDocs: z.boolean().optional().default(true).describe('Include documentation'),
         includeCI: z.boolean().optional().default(true).describe('Include CI/CD pipeline'),
-        packageManager: z.enum(['npm', 'yarn', 'pnpm']).optional().default('npm').describe('Package manager to use')
-      }
+        packageManager: z
+          .enum(['npm', 'yarn', 'pnpm'])
+          .optional()
+          .default('npm')
+          .describe('Package manager to use'),
+      },
     },
-    async ({ projectName, templateType, includeTests = true, includeDocs = true, includeCI = true, packageManager = 'npm' }) => {
+    async ({
+      projectName,
+      templateType,
+      includeTests = true,
+      includeDocs = true,
+      includeCI = true,
+      packageManager = 'npm',
+    }) => {
       updateStats('scaffold_project');
-      
+
       console.error(`🏗️ Project scaffolding: project='${projectName}', type='${templateType}'`);
 
       const projectStructure = {
@@ -393,7 +431,7 @@ function registerScaffoldProjectTool(server: McpServer) {
           'package.json',
           'tsconfig.json',
           '.env.example',
-          'README.md'
+          'README.md',
         ],
         'react-app': [
           'src/App.tsx',
@@ -403,7 +441,7 @@ function registerScaffoldProjectTool(server: McpServer) {
           'public/index.html',
           'package.json',
           'tsconfig.json',
-          'README.md'
+          'README.md',
         ],
         'typescript-library': [
           'src/index.ts',
@@ -412,20 +450,20 @@ function registerScaffoldProjectTool(server: McpServer) {
           'src/utils/helpers.ts',
           'package.json',
           'tsconfig.json',
-          'README.md'
-        ]
+          'README.md',
+        ],
       };
 
       const files = projectStructure[templateType] || [];
-      
+
       if (includeTests) {
         files.push('src/__tests__/index.test.ts', 'jest.config.js');
       }
-      
+
       if (includeDocs) {
         files.push('docs/README.md', 'docs/API.md');
       }
-      
+
       if (includeCI) {
         files.push('.github/workflows/ci.yml', '.github/workflows/deploy.yml');
       }
@@ -455,10 +493,12 @@ ${files.map(file => `├── ${file}`).join('\n')}
 **Generated at:** ${new Date().toISOString()}`;
 
       return {
-        content: [{
-          type: 'text',
-          text: summary
-        }]
+        content: [
+          {
+            type: 'text',
+            text: summary,
+          },
+        ],
       };
     }
   );
@@ -474,18 +514,24 @@ function registerGenerateConfigTool(server: McpServer) {
       title: 'Generate Config',
       description: 'Generate configuration files for projects',
       inputSchema: {
-        configType: z.enum(['tsconfig', 'eslint', 'prettier', 'docker', 'gitignore']).describe('Type of configuration to generate'),
+        configType: z
+          .enum(['tsconfig', 'eslint', 'prettier', 'docker', 'gitignore'])
+          .describe('Type of configuration to generate'),
         projectName: z.string().describe('Project name'),
-        options: z.record(z.any()).optional().default({}).describe('Additional configuration options')
-      }
+        options: z
+          .record(z.any())
+          .optional()
+          .default({})
+          .describe('Additional configuration options'),
+      },
     },
     async ({ configType, projectName, options = {} }) => {
       updateStats('generate_config');
-      
+
       console.error(`⚙️ Config generation: type='${configType}', project='${projectName}'`);
 
       const configs: Record<string, string> = {
-        'tsconfig': `{
+        tsconfig: `{
   "compilerOptions": {
     "target": "ES2022",
     "module": "NodeNext",
@@ -504,7 +550,7 @@ function registerGenerateConfigTool(server: McpServer) {
   "exclude": ["node_modules", "dist"]
 }`,
 
-        'eslint': `module.exports = {
+        eslint: `module.exports = {
   parser: '@typescript-eslint/parser',
   extends: [
     'eslint:recommended',
@@ -523,7 +569,7 @@ function registerGenerateConfigTool(server: McpServer) {
   }
 };`,
 
-        'prettier': `module.exports = {
+        prettier: `module.exports = {
   semi: true,
   trailingComma: 'es5',
   singleQuote: true,
@@ -532,7 +578,7 @@ function registerGenerateConfigTool(server: McpServer) {
   useTabs: false
 };`,
 
-        'docker': `FROM node:18-alpine
+        docker: `FROM node:18-alpine
 
 WORKDIR /app
 
@@ -549,7 +595,7 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \\
 
 CMD ["npm", "start"]`,
 
-        'gitignore': `# Dependencies
+        gitignore: `# Dependencies
 node_modules/
 npm-debug.log*
 yarn-debug.log*
@@ -579,7 +625,7 @@ Thumbs.db
 
 # Logs
 logs/
-*.log`
+*.log`,
       };
 
       const configContent = configs[configType];
@@ -602,10 +648,12 @@ Save as appropriate config file in your project root.
 **Generated at:** ${new Date().toISOString()}`;
 
       return {
-        content: [{
-          type: 'text',
-          text: summary
-        }]
+        content: [
+          {
+            type: 'text',
+            text: summary,
+          },
+        ],
       };
     }
   );
@@ -623,16 +671,22 @@ function registerGenerateTestTool(server: McpServer) {
       inputSchema: {
         testType: z.enum(['unit', 'integration', 'e2e']).describe('Type of test template'),
         moduleName: z.string().describe('Module or component to test'),
-        framework: z.enum(['jest', 'vitest', 'playwright']).optional().default('jest').describe('Testing framework')
-      }
+        framework: z
+          .enum(['jest', 'vitest', 'playwright'])
+          .optional()
+          .default('jest')
+          .describe('Testing framework'),
+      },
     },
     async ({ testType, moduleName, framework = 'jest' }) => {
       updateStats('generate_test');
-      
-      console.error(`🧪 Test generation: type='${testType}', module='${moduleName}', framework='${framework}'`);
+
+      console.error(
+        `🧪 Test generation: type='${testType}', module='${moduleName}', framework='${framework}'`
+      );
 
       const testTemplates: Record<string, string> = {
-        'unit': `import { ${moduleName} } from '../${moduleName.toLowerCase()}';
+        unit: `import { ${moduleName} } from '../${moduleName.toLowerCase()}';
 
 describe('${moduleName}', () => {
   beforeEach(() => {
@@ -675,7 +729,7 @@ describe('${moduleName}', () => {
   });
 });`,
 
-        'integration': `import request from 'supertest';
+        integration: `import request from 'supertest';
 import { app } from '../app';
 
 describe('${moduleName} Integration Tests', () => {
@@ -709,7 +763,7 @@ describe('${moduleName} Integration Tests', () => {
   });
 });`,
 
-        'e2e': `import { test, expect } from '@playwright/test';
+        e2e: `import { test, expect } from '@playwright/test';
 
 test.describe('${moduleName} E2E Tests', () => {
   test.beforeEach(async ({ page }) => {
@@ -731,7 +785,7 @@ test.describe('${moduleName} E2E Tests', () => {
     await page.click('[data-testid="error-trigger"]');
     await expect(page.locator('[data-testid="error-message"]')).toBeVisible();
   });
-});`
+});`,
       };
 
       const testContent = testTemplates[testType];
@@ -756,10 +810,12 @@ ${testContent}
 **Generated at:** ${new Date().toISOString()}`;
 
       return {
-        content: [{
-          type: 'text',
-          text: summary
-        }]
+        content: [
+          {
+            type: 'text',
+            text: summary,
+          },
+        ],
       };
     }
   );
@@ -778,16 +834,20 @@ function registerGenerateDocsTool(server: McpServer) {
         docType: z.enum(['readme', 'api', 'changelog']).describe('Type of documentation'),
         projectName: z.string().describe('Project name'),
         version: z.string().optional().default('1.0.0').describe('Project version'),
-        features: z.array(z.string()).optional().default([]).describe('Project features to document')
-      }
+        features: z
+          .array(z.string())
+          .optional()
+          .default([])
+          .describe('Project features to document'),
+      },
     },
     async ({ docType, projectName, version = '1.0.0', features = [] }) => {
       updateStats('generate_docs');
-      
+
       console.error(`📚 Documentation generation: type='${docType}', project='${projectName}'`);
 
       const docTemplates: Record<string, string> = {
-        'readme': `# ${projectName}
+        readme: `# ${projectName}
 
 ## Overview
 
@@ -844,7 +904,7 @@ npm run lint    # Code linting
 
 MIT License - see LICENSE file for details.`,
 
-        'api': `# ${projectName} API Documentation
+        api: `# ${projectName} API Documentation
 
 ## Base URL
 \`https://api.${projectName.toLowerCase()}.com/v1\`
@@ -920,7 +980,7 @@ All errors follow this format:
 }
 \`\`\``,
 
-        'changelog': `# Changelog
+        changelog: `# Changelog
 
 All notable changes to ${projectName} will be documented in this file.
 
@@ -948,7 +1008,7 @@ ${features.map(feature => `- ${feature} support`).join('\n')}
 - N/A
 
 ### Security
-- N/A`
+- N/A`,
       };
 
       const docContent = docTemplates[docType];
@@ -968,10 +1028,12 @@ ${docContent}
 **Generated at:** ${new Date().toISOString()}`;
 
       return {
-        content: [{
-          type: 'text',
-          text: summary
-        }]
+        content: [
+          {
+            type: 'text',
+            text: summary,
+          },
+        ],
       };
     }
   );
@@ -987,56 +1049,64 @@ function registerListTemplatesTool(server: McpServer) {
       title: 'List Templates',
       description: 'List all available templates by category',
       inputSchema: {
-        category: z.enum(['all', 'code', 'config', 'project', 'test', 'docs']).optional().default('all').describe('Template category to list')
-      }
+        category: z
+          .enum(['all', 'code', 'config', 'project', 'test', 'docs'])
+          .optional()
+          .default('all')
+          .describe('Template category to list'),
+      },
     },
     async ({ category = 'all' }) => {
       updateStats('list_templates');
-      
+
       console.error(`📋 Templates list: category='${category}'`);
 
       const templates = {
-        'code': [
+        code: [
           'react-component - React functional component with TypeScript',
           'express-api - Express.js API server with middleware',
           'typescript-class - TypeScript class with methods',
           'package-json - Node.js package.json configuration',
           'dockerfile - Docker containerization',
           'github-workflow - GitHub Actions CI/CD',
-          'jest-config - Jest testing configuration'
+          'jest-config - Jest testing configuration',
         ],
-        'config': [
+        config: [
           'tsconfig - TypeScript configuration',
           'eslint - ESLint configuration',
           'prettier - Prettier configuration',
           'docker - Docker containerization',
-          'gitignore - Git ignore patterns'
+          'gitignore - Git ignore patterns',
         ],
-        'project': [
+        project: [
           'express-api - Full Express.js API project',
           'react-app - React application with TypeScript',
-          'typescript-library - TypeScript library package'
+          'typescript-library - TypeScript library package',
         ],
-        'test': [
+        test: [
           'unit - Unit test template with Jest',
           'integration - Integration test template',
-          'e2e - End-to-end test with Playwright'
+          'e2e - End-to-end test with Playwright',
         ],
-        'docs': [
+        docs: [
           'readme - Project README.md',
           'api - API documentation',
-          'changelog - Project changelog'
-        ]
+          'changelog - Project changelog',
+        ],
       };
 
       let responseText: string;
       if (category === 'all') {
         responseText = Object.entries(templates)
-          .map(([cat, temps]) => `**${cat.toUpperCase()}:**\n${temps.map(t => `- ${t}`).join('\n')}`)
+          .map(
+            ([cat, temps]) => `**${cat.toUpperCase()}:**\n${temps.map(t => `- ${t}`).join('\n')}`
+          )
           .join('\n\n');
       } else {
         const categoryTemplates = templates[category as keyof typeof templates];
-        responseText = categoryTemplates ? categoryTemplates.map(t => `- ${t}`).join('\n') : 'Category not found';
+        responseText = categoryTemplates
+          ? categoryTemplates.map(t => `- ${t}`).join('\n')
+          : 'Category not found';
       }
 
       const summary = `📋 **Available Templates**
@@ -1055,10 +1125,12 @@ ${responseText}
 **Total Templates:** ${Object.values(templates).flat().length}`;
 
       return {
-        content: [{
-          type: 'text',
-          text: summary
-        }]
+        content: [
+          {
+            type: 'text',
+            text: summary,
+          },
+        ],
       };
     }
   );
@@ -1076,37 +1148,37 @@ function registerValidateTemplateTool(server: McpServer) {
       inputSchema: {
         templateContent: z.string().describe('Template content to validate'),
         templateType: z.string().describe('Type of template being validated'),
-        strictMode: z.boolean().optional().default(false).describe('Enable strict validation')
-      }
+        strictMode: z.boolean().optional().default(false).describe('Enable strict validation'),
+      },
     },
     async ({ templateContent, templateType, strictMode = false }) => {
       updateStats('validate_template');
-      
+
       console.error(`✅ Template validation: type='${templateType}', strict=${strictMode}`);
 
-      const validationRules: Record<string, Array<{rule: string, required: boolean}>> = {
+      const validationRules: Record<string, Array<{ rule: string; required: boolean }>> = {
         'package-json': [
           { rule: 'Has name field', required: true },
           { rule: 'Has version field', required: true },
           { rule: 'Has valid JSON syntax', required: true },
-          { rule: 'Has scripts section', required: false }
+          { rule: 'Has scripts section', required: false },
         ],
-        'typescript': [
+        typescript: [
           { rule: 'No TypeScript syntax errors', required: true },
           { rule: 'Follows naming conventions', required: false },
           { rule: 'Has proper exports', required: true },
-          { rule: 'Includes type annotations', required: false }
+          { rule: 'Includes type annotations', required: false },
         ],
         'react-component': [
           { rule: 'Valid JSX syntax', required: true },
           { rule: 'Proper React imports', required: true },
           { rule: 'TypeScript props interface', required: false },
-          { rule: 'Default export present', required: true }
-        ]
+          { rule: 'Default export present', required: true },
+        ],
       };
 
       const rules = validationRules[templateType] || [
-        { rule: 'Basic syntax check', required: true }
+        { rule: 'Basic syntax check', required: true },
       ];
 
       const validationResults = rules.map(rule => {
@@ -1130,7 +1202,8 @@ function registerValidateTemplateTool(server: McpServer) {
         }
 
         if (rule.rule.includes('React imports') && templateType === 'react-component') {
-          passed = templateContent.includes('import React') || templateContent.includes('from "react"');
+          passed =
+            templateContent.includes('import React') || templateContent.includes('from "react"');
           if (!passed) message = `❌ ${rule.rule} - Missing React import`;
         }
 
@@ -1161,10 +1234,12 @@ ${warnings.length > 0 ? `**Warnings:**\n${warnings.map(w => `- ${w.rule}`).join(
 **Validated at:** ${new Date().toISOString()}`;
 
       return {
-        content: [{
-          type: 'text',
-          text: summary
-        }]
+        content: [
+          {
+            type: 'text',
+            text: summary,
+          },
+        ],
       };
     }
   );
@@ -1180,18 +1255,22 @@ function registerServerStatusTool(server: McpServer) {
       title: 'Server Status',
       description: 'Get template server health and performance statistics',
       inputSchema: {
-        includeStats: z.boolean().optional().default(true).describe('Include detailed usage statistics')
-      }
+        includeStats: z
+          .boolean()
+          .optional()
+          .default(true)
+          .describe('Include detailed usage statistics'),
+      },
     },
     async ({ includeStats = true }) => {
       updateStats('get_server_status');
-      
+
       console.error('📊 Server status requested');
 
       const uptime = process.uptime();
       const uptimeHours = Math.floor(uptime / 3600);
       const uptimeMinutes = Math.floor((uptime % 3600) / 60);
-      
+
       let responseText = `📊 **Template Server Status**
 
 🟢 **Status:** HEALTHY
@@ -1238,10 +1317,12 @@ function registerServerStatusTool(server: McpServer) {
 *Last updated: ${new Date().toISOString()}*`;
 
       return {
-        content: [{
-          type: 'text',
-          text: responseText
-        }]
+        content: [
+          {
+            type: 'text',
+            text: responseText,
+          },
+        ],
       };
     }
   );
@@ -1257,9 +1338,9 @@ function registerServerStatusTool(server: McpServer) {
 function createServer(): McpServer {
   const server = new McpServer({
     name: SERVER_NAME,
-    version: SERVER_VERSION
+    version: SERVER_VERSION,
   });
-  
+
   // Register all template tools
   registerGenerateTemplateTool(server);
   registerScaffoldProjectTool(server);
@@ -1269,7 +1350,7 @@ function createServer(): McpServer {
   registerListTemplatesTool(server);
   registerValidateTemplateTool(server);
   registerServerStatusTool(server);
-  
+
   return server;
 }
 
@@ -1279,7 +1360,7 @@ function createServer(): McpServer {
 function setupGracefulShutdown(server: McpServer): void {
   const shutdown = async (signal: string) => {
     console.error(`\nReceived ${signal}, shutting down gracefully...`);
-    
+
     try {
       await server.close();
       console.error('Template server stopped successfully');
@@ -1289,17 +1370,17 @@ function setupGracefulShutdown(server: McpServer): void {
       process.exit(1);
     }
   };
-  
+
   process.on('SIGTERM', () => shutdown('SIGTERM'));
   process.on('SIGINT', () => shutdown('SIGINT'));
   process.on('SIGHUP', () => shutdown('SIGHUP'));
-  
-  process.on('uncaughtException', (error) => {
+
+  process.on('uncaughtException', error => {
     console.error('Uncaught exception in template server:', error);
     process.exit(1);
   });
-  
-  process.on('unhandledRejection', (reason) => {
+
+  process.on('unhandledRejection', reason => {
     console.error('Unhandled promise rejection in template server:', reason);
     process.exit(1);
   });
@@ -1319,19 +1400,19 @@ async function main(): Promise<void> {
     console.error('🔌 Transport: stdio');
     console.error('🛠️ Tools: generate, scaffold, config, test, docs, list, validate, status');
     console.error('📡 Ready to receive MCP requests...\n');
-    
+
     // Create server
     const server = createServer();
-    
+
     // Setup graceful shutdown
     setupGracefulShutdown(server);
-    
+
     // Create stdio transport
     const transport = new StdioServerTransport();
-    
+
     // Connect server to transport
     await server.connect(transport);
-    
+
     console.error('✅ Template server connected successfully');
     console.error('💡 Available tools:');
     console.error('   • generate_template - Generate code templates');
@@ -1343,16 +1424,15 @@ async function main(): Promise<void> {
     console.error('   • validate_template - Validate generated templates');
     console.error('   • get_server_status - Get server health and statistics');
     console.error('💡 Use Ctrl+C to stop the server\n');
-    
   } catch (error) {
     console.error('💥 Failed to start template server:');
     console.error(error instanceof Error ? error.message : String(error));
-    
+
     if (error instanceof Error && error.stack) {
       console.error('\n🔍 Stack trace:');
       console.error(error.stack);
     }
-    
+
     process.exit(1);
   }
 }
@@ -1363,7 +1443,7 @@ async function main(): Promise<void> {
 
 // Start the server if this file is run directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-  main().catch((error) => {
+  main().catch(error => {
     console.error('💥 Bootstrap error:', error);
     process.exit(1);
   });

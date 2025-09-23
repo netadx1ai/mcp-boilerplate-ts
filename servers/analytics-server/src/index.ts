@@ -2,18 +2,18 @@
 
 /**
  * @fileoverview Analytics Server - Production MCP Server for Analytics and Metrics
- * 
+ *
  * A production-ready MCP server that provides comprehensive analytics and metrics functionality
  * using the official TypeScript SDK. This server demonstrates real-world MCP server
  * implementation with 7 specialized analytics tools.
- * 
+ *
  * Features:
  * - Official @modelcontextprotocol/sdk integration
  * - 7 analytics tools: track, query, dashboard, report, export, alerts, status
  * - Real-time metrics collection and analysis
  * - Production error handling and logging
  * - Performance monitoring and alerting
- * 
+ *
  * @author MCP Boilerplate Team
  * @version 1.0.0
  */
@@ -90,7 +90,7 @@ const serverStats: ServerStats = {
   eventsTracked: 0,
   metricsCollected: 0,
   dashboardsCreated: 0,
-  alertsTriggered: 0
+  alertsTriggered: 0,
 };
 
 // Mock data storage (in production, would use real database)
@@ -119,7 +119,7 @@ function generateMockEvents(eventType: string, count: number = 10): AnalyticsEve
   const events: AnalyticsEvent[] = [];
   const userIds = ['user_001', 'user_002', 'user_003', 'user_004', 'user_005'];
   const sources = ['web', 'mobile', 'api', 'desktop'];
-  
+
   for (let i = 0; i < count; i++) {
     const event: AnalyticsEvent = {
       id: `evt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -130,17 +130,17 @@ function generateMockEvents(eventType: string, count: number = 10): AnalyticsEve
         page: `/page${Math.floor(Math.random() * 10)}`,
         duration: Math.floor(Math.random() * 300),
         device: ['desktop', 'mobile', 'tablet'][Math.floor(Math.random() * 3)],
-        browser: ['chrome', 'firefox', 'safari', 'edge'][Math.floor(Math.random() * 4)]
+        browser: ['chrome', 'firefox', 'safari', 'edge'][Math.floor(Math.random() * 4)],
       },
       timestamp: new Date(Date.now() - Math.random() * 86400000 * 7).toISOString(),
       source: sources[Math.floor(Math.random() * sources.length)],
       userAgent: 'Mozilla/5.0 (compatible; AnalyticsBot/1.0)',
-      ipAddress: `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`
+      ipAddress: `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
     };
-    
+
     events.push(event);
   }
-  
+
   return events;
 }
 
@@ -151,12 +151,13 @@ function generateMockMetrics(metricName: string, timeRange: string): MetricData[
   const metrics: MetricData[] = [];
   const now = Date.now();
   const intervals = timeRange === '1h' ? 12 : timeRange === '24h' ? 24 : 7;
-  const intervalMs = timeRange === '1h' ? 5 * 60 * 1000 : timeRange === '24h' ? 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
-  
+  const intervalMs =
+    timeRange === '1h' ? 5 * 60 * 1000 : timeRange === '24h' ? 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
+
   for (let i = 0; i < intervals; i++) {
     const timestamp = new Date(now - (intervals - i) * intervalMs).toISOString();
     const baseValue = Math.floor(Math.random() * 1000);
-    
+
     metrics.push({
       name: metricName,
       value: baseValue + Math.floor(Math.random() * 200),
@@ -165,12 +166,12 @@ function generateMockMetrics(metricName: string, timeRange: string): MetricData[
       tags: {
         source: 'analytics-server',
         environment: 'production',
-        region: ['us-east', 'us-west', 'eu-central'][Math.floor(Math.random() * 3)]
+        region: ['us-east', 'us-west', 'eu-central'][Math.floor(Math.random() * 3)],
       },
-      aggregationType: 'sum'
+      aggregationType: 'sum',
     });
   }
-  
+
   return metrics;
 }
 
@@ -188,19 +189,31 @@ function registerTrackEventTool(server: McpServer) {
       title: 'Track Analytics Event',
       description: 'Track analytics events with properties and metadata',
       inputSchema: {
-        eventType: z.string().describe('Type of event to track (e.g., page_view, button_click, purchase)'),
+        eventType: z
+          .string()
+          .describe('Type of event to track (e.g., page_view, button_click, purchase)'),
         userId: z.string().optional().describe('User ID associated with the event'),
         sessionId: z.string().optional().describe('Session ID for the event'),
-        properties: z.record(z.any()).optional().default({}).describe('Event properties and metadata'),
-        source: z.string().optional().default('unknown').describe('Source of the event (web, mobile, api)')
-      }
+        properties: z
+          .record(z.any())
+          .optional()
+          .default({})
+          .describe('Event properties and metadata'),
+        source: z
+          .string()
+          .optional()
+          .default('unknown')
+          .describe('Source of the event (web, mobile, api)'),
+      },
     },
     async ({ eventType, userId, sessionId, properties = {}, source = 'unknown' }) => {
       updateStats('track_event');
       serverStats.eventsTracked++;
-      
-      console.error(`📊 Event tracking: type='${eventType}', user='${userId || 'anonymous'}', source='${source}'`);
-      
+
+      console.error(
+        `📊 Event tracking: type='${eventType}', user='${userId || 'anonymous'}', source='${source}'`
+      );
+
       const event: AnalyticsEvent = {
         id: `evt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         eventType,
@@ -210,11 +223,11 @@ function registerTrackEventTool(server: McpServer) {
         timestamp: new Date().toISOString(),
         source,
         userAgent: 'MCP Analytics Server',
-        ipAddress: '127.0.0.1'
+        ipAddress: '127.0.0.1',
       };
-      
+
       eventsStore.push(event);
-      
+
       const summary = `📊 **Event Tracked Successfully**
 
 **Event Details:**
@@ -226,7 +239,11 @@ function registerTrackEventTool(server: McpServer) {
 - **Timestamp:** ${event.timestamp}
 
 **Properties:**
-${Object.entries(properties).map(([key, value]) => `- **${key}:** ${JSON.stringify(value)}`).join('\n') || 'None'}
+${
+  Object.entries(properties)
+    .map(([key, value]) => `- **${key}:** ${JSON.stringify(value)}`)
+    .join('\n') || 'None'
+}
 
 **Storage:**
 - Total Events: ${eventsStore.length}
@@ -235,10 +252,12 @@ ${Object.entries(properties).map(([key, value]) => `- **${key}:** ${JSON.stringi
 ✅ Event successfully stored in analytics database`;
 
       return {
-        content: [{
-          type: 'text',
-          text: summary
-        }]
+        content: [
+          {
+            type: 'text',
+            text: summary,
+          },
+        ],
       };
     }
   );
@@ -256,41 +275,58 @@ function registerQueryAnalyticsTool(server: McpServer) {
       inputSchema: {
         eventType: z.string().optional().describe('Filter by event type'),
         userId: z.string().optional().describe('Filter by user ID'),
-        timeRange: z.enum(['1h', '24h', '7d', '30d']).optional().default('24h').describe('Time range for query'),
-        limit: z.number().int().min(1).max(100).optional().default(20).describe('Maximum number of results'),
-        aggregation: z.enum(['count', 'sum', 'avg', 'min', 'max']).optional().default('count').describe('Aggregation type')
-      }
+        timeRange: z
+          .enum(['1h', '24h', '7d', '30d'])
+          .optional()
+          .default('24h')
+          .describe('Time range for query'),
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(100)
+          .optional()
+          .default(20)
+          .describe('Maximum number of results'),
+        aggregation: z
+          .enum(['count', 'sum', 'avg', 'min', 'max'])
+          .optional()
+          .default('count')
+          .describe('Aggregation type'),
+      },
     },
     async ({ eventType, userId, timeRange = '24h', limit = 20, aggregation = 'count' }) => {
       updateStats('query_analytics');
-      
-      console.error(`🔍 Analytics query: eventType='${eventType || 'all'}', user='${userId || 'all'}', range='${timeRange}'`);
-      
+
+      console.error(
+        `🔍 Analytics query: eventType='${eventType || 'all'}', user='${userId || 'all'}', range='${timeRange}'`
+      );
+
       // Generate or filter mock data
-      let events = eventType ? generateMockEvents(eventType, limit) : generateMockEvents('page_view', limit);
-      
+      let events = eventType
+        ? generateMockEvents(eventType, limit)
+        : generateMockEvents('page_view', limit);
+
       if (userId) {
         events = events.filter(e => e.userId === userId);
       }
-      
+
       // Apply time range filtering
       const now = Date.now();
       const timeRangeMs = {
         '1h': 60 * 60 * 1000,
         '24h': 24 * 60 * 60 * 1000,
         '7d': 7 * 24 * 60 * 60 * 1000,
-        '30d': 30 * 24 * 60 * 60 * 1000
+        '30d': 30 * 24 * 60 * 60 * 1000,
       };
-      
-      events = events.filter(e => 
-        now - new Date(e.timestamp).getTime() <= timeRangeMs[timeRange]
-      );
-      
+
+      events = events.filter(e => now - new Date(e.timestamp).getTime() <= timeRangeMs[timeRange]);
+
       // Calculate aggregations
       const totalEvents = events.length;
       const uniqueUsers = new Set(events.map(e => e.userId).filter(Boolean)).size;
       const eventTypes = [...new Set(events.map(e => e.eventType))];
-      
+
       const summary = `🔍 **Analytics Query Results**
 
 **Query Parameters:**
@@ -306,23 +342,30 @@ function registerQueryAnalyticsTool(server: McpServer) {
 - **Time Period:** Last ${timeRange}
 
 **Sample Events:**
-${events.slice(0, 5).map((event, index) => `
+${events
+  .slice(0, 5)
+  .map(
+    (event, index) => `
 **${index + 1}. ${event.eventType}**
 📅 ${new Date(event.timestamp).toLocaleString()}
 👤 User: ${event.userId || 'Anonymous'}
 🔗 Session: ${event.sessionId || 'N/A'}
 📱 Source: ${event.source}
-📊 Properties: ${Object.keys(event.properties).join(', ') || 'None'}`).join('\n')}
+📊 Properties: ${Object.keys(event.properties).join(', ') || 'None'}`
+  )
+  .join('\n')}
 
 ${events.length > 5 ? `... and ${events.length - 5} more events` : ''}
 
 **Query executed at:** ${new Date().toISOString()}`;
 
       return {
-        content: [{
-          type: 'text',
-          text: summary
-        }]
+        content: [
+          {
+            type: 'text',
+            text: summary,
+          },
+        ],
       };
     }
   );
@@ -339,35 +382,48 @@ function registerCreateDashboardTool(server: McpServer) {
       description: 'Create analytics dashboards with widgets and metrics',
       inputSchema: {
         name: z.string().describe('Dashboard name'),
-        widgets: z.array(z.object({
-          title: z.string(),
-          type: z.enum(['chart', 'metric', 'table', 'gauge']),
-          query: z.string(),
-          timeRange: z.string().optional().default('24h')
-        })).describe('Dashboard widgets configuration'),
-        refreshInterval: z.number().int().min(30).max(3600).optional().default(300).describe('Auto-refresh interval in seconds')
-      }
+        widgets: z
+          .array(
+            z.object({
+              title: z.string(),
+              type: z.enum(['chart', 'metric', 'table', 'gauge']),
+              query: z.string(),
+              timeRange: z.string().optional().default('24h'),
+            })
+          )
+          .describe('Dashboard widgets configuration'),
+        refreshInterval: z
+          .number()
+          .int()
+          .min(30)
+          .max(3600)
+          .optional()
+          .default(300)
+          .describe('Auto-refresh interval in seconds'),
+      },
     },
     async ({ name, widgets, refreshInterval = 300 }) => {
       updateStats('create_dashboard');
       serverStats.dashboardsCreated++;
-      
-      console.error(`📊 Dashboard creation: name='${name}', widgets=${widgets.length}, refresh=${refreshInterval}s`);
-      
+
+      console.error(
+        `📊 Dashboard creation: name='${name}', widgets=${widgets.length}, refresh=${refreshInterval}s`
+      );
+
       const dashboard = {
         id: `dash_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         name,
         widgets: widgets.map((widget, index) => ({
           id: `widget_${index}_${Math.random().toString(36).substr(2, 6)}`,
           ...widget,
-          refreshInterval
+          refreshInterval,
         })),
         createdAt: new Date().toISOString(),
-        lastUpdated: new Date().toISOString()
+        lastUpdated: new Date().toISOString(),
       };
-      
+
       dashboardsStore.push(dashboard as any);
-      
+
       const summary = `📊 **Dashboard Created Successfully**
 
 **Dashboard Details:**
@@ -378,11 +434,15 @@ function registerCreateDashboardTool(server: McpServer) {
 - **Created:** ${dashboard.createdAt}
 
 **Widgets Configuration:**
-${widgets.map((widget, index) => `
+${widgets
+  .map(
+    (widget, index) => `
 **${index + 1}. ${widget.title}**
 - Type: ${widget.type}
 - Query: ${widget.query}
-- Time Range: ${widget.timeRange || '24h'}`).join('\n')}
+- Time Range: ${widget.timeRange || '24h'}`
+  )
+  .join('\n')}
 
 **Dashboard URLs:**
 - View: /dashboards/${dashboard.id}
@@ -396,10 +456,12 @@ ${widgets.map((widget, index) => `
 ✅ Dashboard ready for use!`;
 
       return {
-        content: [{
-          type: 'text',
-          text: summary
-        }]
+        content: [
+          {
+            type: 'text',
+            text: summary,
+          },
+        ],
       };
     }
   );
@@ -415,18 +477,30 @@ function registerGenerateReportTool(server: McpServer) {
       title: 'Generate Analytics Report',
       description: 'Generate comprehensive analytics reports with insights',
       inputSchema: {
-        reportType: z.enum(['daily', 'weekly', 'monthly', 'custom']).describe('Type of report to generate'),
+        reportType: z
+          .enum(['daily', 'weekly', 'monthly', 'custom'])
+          .describe('Type of report to generate'),
         metrics: z.array(z.string()).describe('Metrics to include in the report'),
         timeRange: z.string().optional().default('7d').describe('Time range for the report'),
-        format: z.enum(['summary', 'detailed', 'executive']).optional().default('summary').describe('Report format level'),
-        includeCharts: z.boolean().optional().default(true).describe('Include visual charts in report')
-      }
+        format: z
+          .enum(['summary', 'detailed', 'executive'])
+          .optional()
+          .default('summary')
+          .describe('Report format level'),
+        includeCharts: z
+          .boolean()
+          .optional()
+          .default(true)
+          .describe('Include visual charts in report'),
+      },
     },
     async ({ reportType, metrics, timeRange = '7d', format = 'summary', includeCharts = true }) => {
       updateStats('generate_report');
-      
-      console.error(`📈 Report generation: type='${reportType}', metrics=${metrics.length}, range='${timeRange}'`);
-      
+
+      console.error(
+        `📈 Report generation: type='${reportType}', metrics=${metrics.length}, range='${timeRange}'`
+      );
+
       // Generate mock report data
       const reportData = {
         id: `report_${Date.now()}`,
@@ -438,10 +512,10 @@ function registerGenerateReportTool(server: McpServer) {
           current: Math.floor(Math.random() * 10000),
           previous: Math.floor(Math.random() * 8000),
           change: ((Math.random() - 0.5) * 100).toFixed(2),
-          trend: ['up', 'down', 'stable'][Math.floor(Math.random() * 3)]
-        }))
+          trend: ['up', 'down', 'stable'][Math.floor(Math.random() * 3)],
+        })),
       };
-      
+
       const summary = `📈 **Analytics Report Generated**
 
 **Report Information:**
@@ -453,11 +527,15 @@ function registerGenerateReportTool(server: McpServer) {
 - **Generated:** ${reportData.generatedAt}
 
 **Key Metrics:**
-${reportData.metrics.map(metric => `
+${reportData.metrics
+  .map(
+    metric => `
 **📊 ${metric.name}**
 - Current: ${metric.current.toLocaleString()}
 - Previous: ${metric.previous.toLocaleString()}
-- Change: ${metric.change}% ${metric.trend === 'up' ? '📈' : metric.trend === 'down' ? '📉' : '➡️'}`).join('\n')}
+- Change: ${metric.change}% ${metric.trend === 'up' ? '📈' : metric.trend === 'down' ? '📉' : '➡️'}`
+  )
+  .join('\n')}
 
 **Report Insights:**
 - Total events analyzed: ${Math.floor(Math.random() * 50000).toLocaleString()}
@@ -473,10 +551,12 @@ ${reportData.metrics.map(metric => `
 📊 Report ready for download and sharing!`;
 
       return {
-        content: [{
-          type: 'text',
-          text: summary
-        }]
+        content: [
+          {
+            type: 'text',
+            text: summary,
+          },
+        ],
       };
     }
   );
@@ -492,22 +572,24 @@ function registerExportDataTool(server: McpServer) {
       title: 'Export Analytics Data',
       description: 'Export analytics data in various formats (CSV, JSON, Excel)',
       inputSchema: {
-        dataType: z.enum(['events', 'metrics', 'reports', 'dashboards']).describe('Type of data to export'),
+        dataType: z
+          .enum(['events', 'metrics', 'reports', 'dashboards'])
+          .describe('Type of data to export'),
         format: z.enum(['csv', 'json', 'excel', 'pdf']).describe('Export format'),
         timeRange: z.string().optional().default('7d').describe('Time range for export'),
-        filters: z.record(z.any()).optional().default({}).describe('Additional filters for export')
-      }
+        filters: z.record(z.any()).optional().default({}).describe('Additional filters for export'),
+      },
     },
     async ({ dataType, format, timeRange = '7d', filters = {} }) => {
       updateStats('export_data');
-      
+
       console.error(`💾 Data export: type='${dataType}', format='${format}', range='${timeRange}'`);
-      
+
       // Mock export process
       const exportId = `export_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`;
       const recordCount = Math.floor(Math.random() * 10000) + 1000;
       const fileSize = `${(recordCount * 0.5).toFixed(1)}KB`;
-      
+
       const summary = `💾 **Data Export Completed**
 
 **Export Details:**
@@ -519,7 +601,11 @@ function registerExportDataTool(server: McpServer) {
 - **File Size:** ${fileSize}
 
 **Applied Filters:**
-${Object.entries(filters).map(([key, value]) => `- **${key}:** ${JSON.stringify(value)}`).join('\n') || 'None'}
+${
+  Object.entries(filters)
+    .map(([key, value]) => `- **${key}:** ${JSON.stringify(value)}`)
+    .join('\n') || 'None'
+}
 
 **Export Contents:**
 - Data records: ${recordCount.toLocaleString()}
@@ -540,10 +626,12 @@ ${Object.entries(filters).map(([key, value]) => `- **${key}:** ${JSON.stringify(
 📥 Export ready for download!`;
 
       return {
-        content: [{
-          type: 'text',
-          text: summary
-        }]
+        content: [
+          {
+            type: 'text',
+            text: summary,
+          },
+        ],
       };
     }
   );
@@ -561,35 +649,39 @@ function registerCreateAlertTool(server: McpServer) {
       inputSchema: {
         name: z.string().describe('Alert rule name'),
         metric: z.string().describe('Metric to monitor'),
-        condition: z.enum(['greater_than', 'less_than', 'equals', 'not_equals']).describe('Alert condition'),
+        condition: z
+          .enum(['greater_than', 'less_than', 'equals', 'not_equals'])
+          .describe('Alert condition'),
         threshold: z.number().describe('Threshold value for triggering alert'),
         severity: z.enum(['low', 'medium', 'high', 'critical']).describe('Alert severity level'),
-        enabled: z.boolean().optional().default(true).describe('Whether alert is enabled')
-      }
+        enabled: z.boolean().optional().default(true).describe('Whether alert is enabled'),
+      },
     },
     async ({ name, metric, condition, threshold, severity, enabled = true }) => {
       updateStats('create_alert');
-      
-      console.error(`🚨 Alert creation: name='${name}', metric='${metric}', condition='${condition} ${threshold}'`);
-      
+
+      console.error(
+        `🚨 Alert creation: name='${name}', metric='${metric}', condition='${condition} ${threshold}'`
+      );
+
       const alert: AlertRule = {
         id: `alert_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`,
         name,
         condition: `${metric} ${condition} ${threshold}`,
         threshold,
         severity,
-        enabled
+        enabled,
       };
-      
+
       alertsStore.push(alert);
-      
+
       const severityEmoji = {
         low: '🟡',
         medium: '🟠',
         high: '🔴',
-        critical: '🚨'
+        critical: '🚨',
       };
-      
+
       const summary = `🚨 **Analytics Alert Created**
 
 **Alert Configuration:**
@@ -621,10 +713,12 @@ function registerCreateAlertTool(server: McpServer) {
 🔔 Alert monitoring is now active!`;
 
       return {
-        content: [{
-          type: 'text',
-          text: summary
-        }]
+        content: [
+          {
+            type: 'text',
+            text: summary,
+          },
+        ],
       };
     }
   );
@@ -640,53 +734,61 @@ function registerGetInsightsTool(server: McpServer) {
       title: 'Get Analytics Insights',
       description: 'Get AI-powered insights and recommendations from analytics data',
       inputSchema: {
-        focus: z.enum(['performance', 'user_behavior', 'conversion', 'trends', 'anomalies']).describe('Focus area for insights'),
+        focus: z
+          .enum(['performance', 'user_behavior', 'conversion', 'trends', 'anomalies'])
+          .describe('Focus area for insights'),
         timeRange: z.string().optional().default('7d').describe('Time range for analysis'),
-        confidence: z.enum(['low', 'medium', 'high']).optional().default('medium').describe('Minimum confidence level for insights')
-      }
+        confidence: z
+          .enum(['low', 'medium', 'high'])
+          .optional()
+          .default('medium')
+          .describe('Minimum confidence level for insights'),
+      },
     },
     async ({ focus, timeRange = '7d', confidence = 'medium' }) => {
       updateStats('get_insights');
-      
-      console.error(`🧠 Insights generation: focus='${focus}', range='${timeRange}', confidence='${confidence}'`);
-      
+
+      console.error(
+        `🧠 Insights generation: focus='${focus}', range='${timeRange}', confidence='${confidence}'`
+      );
+
       // Generate mock insights based on focus area
       const insights = {
         performance: [
           'Page load times have improved 23% over the last week',
           'Server response times are consistently under 200ms',
           'Peak traffic occurs between 2-4 PM EST',
-          'Mobile performance is 15% slower than desktop'
+          'Mobile performance is 15% slower than desktop',
         ],
         user_behavior: [
           'Users spend average 4.2 minutes per session',
           'Bounce rate decreased by 8% this week',
           'Most popular feature is search functionality',
-          '67% of users return within 24 hours'
+          '67% of users return within 24 hours',
         ],
         conversion: [
           'Conversion rate increased 12% after recent changes',
           'Cart abandonment rate is 23% below industry average',
           'Email campaigns have 34% open rate',
-          'Social media drives 28% of conversions'
+          'Social media drives 28% of conversions',
         ],
         trends: [
           'Weekly active users growing 15% month-over-month',
           'Mobile traffic now represents 65% of total visits',
           'API usage has doubled in the last month',
-          'Feature adoption rate is accelerating'
+          'Feature adoption rate is accelerating',
         ],
         anomalies: [
           'Unusual spike in errors detected at 3:42 AM',
           '15% increase in 404 errors for /api/v2 endpoints',
           'Memory usage patterns changed after last deployment',
-          'Geographic distribution shifted toward APAC region'
-        ]
+          'Geographic distribution shifted toward APAC region',
+        ],
       };
-      
+
       const focusInsights = insights[focus];
       const topInsights = focusInsights.slice(0, 3);
-      
+
       const summary = `🧠 **Analytics Insights: ${focus.replace('_', ' ').toUpperCase()}**
 
 **Analysis Period:** ${timeRange}
@@ -717,10 +819,12 @@ ${topInsights.map((insight, index) => `${index + 1}. ${insight}`).join('\n')}
 **Insight Quality Score:** ${Math.floor(Math.random() * 20 + 80)}/100`;
 
       return {
-        content: [{
-          type: 'text',
-          text: summary
-        }]
+        content: [
+          {
+            type: 'text',
+            text: summary,
+          },
+        ],
       };
     }
   );
@@ -737,36 +841,51 @@ function registerMonitorMetricsTool(server: McpServer) {
       description: 'Monitor real-time metrics and performance indicators',
       inputSchema: {
         metricNames: z.array(z.string()).describe('Metrics to monitor'),
-        timeWindow: z.enum(['1m', '5m', '15m', '1h']).optional().default('5m').describe('Monitoring time window'),
-        alertOnAnomaly: z.boolean().optional().default(false).describe('Alert on anomaly detection')
-      }
+        timeWindow: z
+          .enum(['1m', '5m', '15m', '1h'])
+          .optional()
+          .default('5m')
+          .describe('Monitoring time window'),
+        alertOnAnomaly: z
+          .boolean()
+          .optional()
+          .default(false)
+          .describe('Alert on anomaly detection'),
+      },
     },
     async ({ metricNames, timeWindow = '5m', alertOnAnomaly = false }) => {
       updateStats('monitor_metrics');
       serverStats.metricsCollected += metricNames.length;
-      
-      console.error(`📡 Metrics monitoring: metrics=${metricNames.length}, window='${timeWindow}', alerts=${alertOnAnomaly}`);
-      
+
+      console.error(
+        `📡 Metrics monitoring: metrics=${metricNames.length}, window='${timeWindow}', alerts=${alertOnAnomaly}`
+      );
+
       // Generate mock real-time metrics
       const monitoringData = metricNames.map(metricName => {
         const currentValue = Math.floor(Math.random() * 1000);
         const previousValue = Math.floor(Math.random() * 900);
-        const change = ((currentValue - previousValue) / previousValue * 100).toFixed(2);
+        const change = (((currentValue - previousValue) / previousValue) * 100).toFixed(2);
         const isAnomaly = Math.random() < 0.1; // 10% chance of anomaly
-        
+
         return {
           name: metricName,
           current: currentValue,
           previous: previousValue,
           change: parseFloat(change),
           status: isAnomaly ? 'anomaly' : 'normal',
-          trend: parseFloat(change) > 0 ? 'increasing' : parseFloat(change) < 0 ? 'decreasing' : 'stable',
-          lastUpdated: new Date().toISOString()
+          trend:
+            parseFloat(change) > 0
+              ? 'increasing'
+              : parseFloat(change) < 0
+                ? 'decreasing'
+                : 'stable',
+          lastUpdated: new Date().toISOString(),
         };
       });
-      
+
       const anomalies = monitoringData.filter(m => m.status === 'anomaly');
-      
+
       const summary = `📡 **Real-time Metrics Monitoring**
 
 **Monitoring Configuration:**
@@ -776,21 +895,29 @@ function registerMonitorMetricsTool(server: McpServer) {
 - **Last Update:** ${new Date().toISOString()}
 
 **Current Metrics:**
-${monitoringData.map(metric => `
+${monitoringData
+  .map(
+    metric => `
 **📊 ${metric.name}**
 - Current: ${metric.current.toLocaleString()}
 - Change: ${metric.change > 0 ? '+' : ''}${metric.change}% ${metric.trend === 'increasing' ? '📈' : metric.trend === 'decreasing' ? '📉' : '➡️'}
 - Status: ${metric.status === 'anomaly' ? '🚨 ANOMALY' : '✅ Normal'}
-- Updated: ${new Date(metric.lastUpdated).toLocaleTimeString()}`).join('\n')}
+- Updated: ${new Date(metric.lastUpdated).toLocaleTimeString()}`
+  )
+  .join('\n')}
 
-${anomalies.length > 0 ? `
+${
+  anomalies.length > 0
+    ? `
 **🚨 Anomalies Detected:**
 ${anomalies.map(a => `- ${a.name}: ${a.current} (${a.change > 0 ? '+' : ''}${a.change}%)`).join('\n')}
 
 **Anomaly Actions:**
 - Automatic alerts ${alertOnAnomaly ? 'triggered' : 'disabled'}
 - Investigation recommended for critical metrics
-- Consider adjusting alert thresholds` : '**✅ No Anomalies Detected**'}
+- Consider adjusting alert thresholds`
+    : '**✅ No Anomalies Detected**'
+}
 
 **System Performance:**
 - Monitoring latency: ${Math.floor(Math.random() * 50 + 10)}ms
@@ -800,10 +927,12 @@ ${anomalies.map(a => `- ${a.name}: ${a.current} (${a.change > 0 ? '+' : ''}${a.c
 🔄 Monitoring active - refreshing every ${timeWindow}`;
 
       return {
-        content: [{
-          type: 'text',
-          text: summary
-        }]
+        content: [
+          {
+            type: 'text',
+            text: summary,
+          },
+        ],
       };
     }
   );
@@ -819,14 +948,18 @@ function registerServerStatusTool(server: McpServer) {
       title: 'Server Status',
       description: 'Get analytics server health status and usage statistics',
       inputSchema: {
-        includeStats: z.boolean().optional().default(true).describe('Include detailed usage statistics (default: true)')
-      }
+        includeStats: z
+          .boolean()
+          .optional()
+          .default(true)
+          .describe('Include detailed usage statistics (default: true)'),
+      },
     },
     async ({ includeStats = true }) => {
       updateStats('get_server_status');
-      
+
       console.error('📊 Server status requested');
-      
+
       const status = {
         server: SERVER_NAME,
         version: SERVER_VERSION,
@@ -835,8 +968,8 @@ function registerServerStatusTool(server: McpServer) {
         uptime: process.uptime(),
         memory: {
           used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
-          total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024)
-        }
+          total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024),
+        },
       };
 
       let responseText = `📊 **Analytics Server Status**
@@ -893,10 +1026,12 @@ function registerServerStatusTool(server: McpServer) {
 *Last updated: ${new Date().toISOString()}*`;
 
       return {
-        content: [{
-          type: 'text',
-          text: responseText
-        }]
+        content: [
+          {
+            type: 'text',
+            text: responseText,
+          },
+        ],
       };
     }
   );
@@ -912,9 +1047,9 @@ function registerServerStatusTool(server: McpServer) {
 function createServer(): McpServer {
   const server = new McpServer({
     name: SERVER_NAME,
-    version: SERVER_VERSION
+    version: SERVER_VERSION,
   });
-  
+
   // Register all analytics tools
   registerTrackEventTool(server);
   registerQueryAnalyticsTool(server);
@@ -925,7 +1060,7 @@ function createServer(): McpServer {
   registerGetInsightsTool(server);
   registerMonitorMetricsTool(server);
   registerServerStatusTool(server);
-  
+
   return server;
 }
 
@@ -935,7 +1070,7 @@ function createServer(): McpServer {
 function setupGracefulShutdown(server: McpServer): void {
   const shutdown = async (signal: string) => {
     console.error(`\nReceived ${signal}, shutting down gracefully...`);
-    
+
     try {
       await server.close();
       console.error('Analytics server stopped successfully');
@@ -945,17 +1080,17 @@ function setupGracefulShutdown(server: McpServer): void {
       process.exit(1);
     }
   };
-  
+
   process.on('SIGTERM', () => shutdown('SIGTERM'));
   process.on('SIGINT', () => shutdown('SIGINT'));
   process.on('SIGHUP', () => shutdown('SIGHUP'));
-  
-  process.on('uncaughtException', (error) => {
+
+  process.on('uncaughtException', error => {
     console.error('Uncaught exception in analytics server:', error);
     process.exit(1);
   });
-  
-  process.on('unhandledRejection', (reason) => {
+
+  process.on('unhandledRejection', reason => {
     console.error('Unhandled promise rejection in analytics server:', reason);
     process.exit(1);
   });
@@ -973,21 +1108,23 @@ async function main(): Promise<void> {
     console.error(`🚀 Starting ${SERVER_NAME} v${SERVER_VERSION}`);
     console.error(`📝 ${SERVER_DESCRIPTION}`);
     console.error('🔌 Transport: stdio');
-    console.error('📊 Tools: track, query, dashboard, report, export, alert, insights, monitor, status');
+    console.error(
+      '📊 Tools: track, query, dashboard, report, export, alert, insights, monitor, status'
+    );
     console.error('📡 Ready to receive MCP requests...\n');
-    
+
     // Create server
     const server = createServer();
-    
+
     // Setup graceful shutdown
     setupGracefulShutdown(server);
-    
+
     // Create stdio transport
     const transport = new StdioServerTransport();
-    
+
     // Connect server to transport
     await server.connect(transport);
-    
+
     console.error('✅ Analytics server connected successfully');
     console.error('💡 Available tools:');
     console.error('   • track_event - Track analytics events');
@@ -1000,16 +1137,15 @@ async function main(): Promise<void> {
     console.error('   • monitor_metrics - Real-time metrics monitoring');
     console.error('   • get_server_status - Get server health and stats');
     console.error('💡 Use Ctrl+C to stop the server\n');
-    
   } catch (error) {
     console.error('💥 Failed to start analytics server:');
     console.error(error instanceof Error ? error.message : String(error));
-    
+
     if (error instanceof Error && error.stack) {
       console.error('\n🔍 Stack trace:');
       console.error(error.stack);
     }
-    
+
     process.exit(1);
   }
 }
@@ -1020,7 +1156,7 @@ async function main(): Promise<void> {
 
 // Start the server if this file is run directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-  main().catch((error) => {
+  main().catch(error => {
     console.error('💥 Bootstrap error:', error);
     process.exit(1);
   });

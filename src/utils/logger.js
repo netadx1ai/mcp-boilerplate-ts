@@ -194,7 +194,7 @@ export async function logTiming(logger, operation, fn) {
         logger.error(`${operation} failed`, {
             duration,
             success: false,
-            error: errorMessage
+            error: errorMessage,
         });
         throw error;
     }
@@ -443,9 +443,7 @@ export function createPerformanceLogger(component) {
     return createLogger({
         level: 'debug',
         format: format.combine(format.timestamp(), format.label({ label: `perf:${component}` }), format.json()),
-        transports: [
-            new transports.Console(),
-        ],
+        transports: [new transports.Console()],
     });
 }
 /**
@@ -460,12 +458,14 @@ export function createSecurityLogger(serviceName) {
         format: format.combine(format.timestamp(), format.label({ label: `security:${serviceName}` }), format.json()),
         transports: [
             new transports.Console(),
-            ...(process.env.NODE_ENV === 'production' ? [
-                new transports.File({
-                    filename: `logs/security-${serviceName}.log`,
-                    level: 'info',
-                }),
-            ] : []),
+            ...(process.env.NODE_ENV === 'production'
+                ? [
+                    new transports.File({
+                        filename: `logs/security-${serviceName}.log`,
+                        level: 'info',
+                    }),
+                ]
+                : []),
         ],
     });
 }
@@ -578,11 +578,11 @@ export function createLogAggregator(logger) {
          */
         logStats() {
             // Log counters
-            for (const [event, count] of counters.entries()) {
+            for (const [event, count] of Array.from(counters.entries())) {
                 logger.info('Event counter', { event, count });
             }
             // Log timing statistics
-            for (const [operation, durations] of timings.entries()) {
+            for (const [operation, durations] of Array.from(timings.entries())) {
                 const avg = durations.reduce((sum, d) => sum + d, 0) / durations.length;
                 const min = Math.min(...durations);
                 const max = Math.max(...durations);
@@ -620,9 +620,7 @@ export function createDebugLogger(component) {
             const metaStr = Object.keys(meta).length > 0 ? ` ${JSON.stringify(meta, null, 2)}` : '';
             return `${timestamp} [${component}] ${level}: ${message}${metaStr}`;
         })),
-        transports: [
-            new transports.Console(),
-        ],
+        transports: [new transports.Console()],
         silent: process.env.NODE_ENV === 'production',
     });
     return logger;
@@ -686,7 +684,7 @@ export function createMockLogger() {
     };
     // Add utility methods
     mockLogger.getLogs = () => [...logs];
-    mockLogger.clearLogs = () => logs.length = 0;
+    mockLogger.clearLogs = () => (logs.length = 0);
     return mockLogger;
 }
 /**
@@ -697,9 +695,7 @@ export function createMockLogger() {
 export function createSilentLogger() {
     return createLogger({
         level: 'error',
-        transports: [
-            new transports.Console({ silent: true }),
-        ],
+        transports: [new transports.Console({ silent: true })],
     });
 }
 // =============================================================================
@@ -714,7 +710,9 @@ export function createSilentLogger() {
 export function validateLoggingConfig(config) {
     const result = LoggingConfigSchema.safeParse(config);
     if (!result.success) {
-        const issues = result.error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`).join(', ');
+        const issues = result.error.issues
+            .map(issue => `${issue.path.join('.')}: ${issue.message}`)
+            .join(', ');
         throw new Error(`Invalid logging configuration: ${issues}`);
     }
     // Additional validation

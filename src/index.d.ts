@@ -8,12 +8,10 @@
  * @version 0.3.0
  */
 export { BaseMcpServer } from './core/server.js';
-export { HttpMcpServer } from './transport/http-server.js';
-export { HttpTransport, createHttpTransport, HttpTransportFactory, TransportFactory, createTransportConfig, validateTransportConfig, TRANSPORT_TYPES, DEFAULT_HTTP_PORTS, HTTP_STATUS_CODES, HTTP_METHODS, CORS_ORIGINS, AUTH_HEADERS, RATE_LIMIT_WINDOWS, TRANSPORT_PRESETS } from './transport/index.js';
-export type { McpServer, McpServerConfig, McpTool, ToolResult, ToolExample, ToolCategory, ServerState, ServerStats, HealthCheckResult, HealthCheck, EventPayload, EventListener, LoggingConfig, SecurityConfig, PerformanceConfig, HttpTransportConfig, HttpMcpServerConfig, HttpRequestContext, HttpResponse, HttpAuthConfig, CorsConfig, RateLimitConfig, HttpSecurityConfig, SwaggerConfig, McpBoilerplateError, ServerConfigError, ToolExecutionError, ValidationError, UserContext, TelemetryConfig, SpanContext } from './types/index.js';
+export { HttpTransport, createHttpTransport, HttpTransportFactory, HttpMcpServer, createHttpMcpServer, HttpMcpServerFactory, TRANSPORT_TYPES, DEFAULT_HTTP_PORTS, HTTP_STATUS_CODES, HTTP_METHODS, CORS_ORIGINS, AUTH_HEADERS, RATE_LIMIT_WINDOWS, TRANSPORT_PRESETS, } from './transport/index.js';
+export type { McpServer, McpServerConfig, McpTool, ToolResult, ToolExample, ToolCategory, ServerState, ServerStats, HealthCheckResult, HealthCheck, EventPayload, EventListener, LoggingConfig, SecurityConfig, PerformanceConfig, HttpTransportConfig, HttpMcpServerConfig, HttpRequestContext, HttpResponse, HttpAuthConfig, CorsConfig, RateLimitConfig, HttpSecurityConfig, SwaggerConfig, McpBoilerplateError, ServerConfigError, ToolExecutionError, ValidationError, UserContext, TelemetryConfig, SpanContext, } from './types/index.js';
 export { createDefaultConfig, validateConfig } from './utils/config.js';
 export { createDefaultLogger } from './utils/logger.js';
-export { createMetricsCollector } from './utils/metrics.js';
 export { isMcpTool, isToolResult, isMcpBoilerplateError } from './types/index.js';
 export { DEFAULT_PORTS, DEFAULT_TIMEOUTS, DEFAULT_LIMITS } from './types/index.js';
 export declare const VERSION = "0.3.0";

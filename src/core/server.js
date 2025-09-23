@@ -85,7 +85,7 @@ export class BaseMcpServer extends EventEmitter {
         this._initializeHandlers();
         this._logger.info('MCP Server initialized', {
             name: this._config.name,
-            version: this._config.version
+            version: this._config.version,
         });
     }
     // =============================================================================
@@ -146,7 +146,7 @@ export class BaseMcpServer extends EventEmitter {
             this._setState('running');
             this._emit('server:started', {
                 port: this._config.port,
-                toolCount: this._tools.size
+                toolCount: this._tools.size,
             });
             this._logger.info('MCP server started successfully', {
                 port: this._config.port,
@@ -183,7 +183,7 @@ export class BaseMcpServer extends EventEmitter {
             this._setState('stopped');
             this._startTime = undefined;
             this._emit('server:stopped', {
-                finalStats: this.stats
+                finalStats: this.stats,
             });
             this._logger.info('MCP server stopped successfully');
         }
@@ -270,7 +270,7 @@ export class BaseMcpServer extends EventEmitter {
         this._logger.info('Tool registered', {
             toolName: tool.name,
             category: tool.category,
-            version: tool.version
+            version: tool.version,
         });
     }
     /**

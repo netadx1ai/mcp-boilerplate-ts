@@ -46,10 +46,12 @@ export const ToolResultSchema = z.object({
     success: z.boolean(),
     data: z.unknown().optional(),
     error: z.string().optional(),
-    metadata: z.object({
+    metadata: z
+        .object({
         executionTime: z.number().nonnegative(),
         timestamp: z.string().datetime(),
-    }).optional(),
+    })
+        .optional(),
 });
 // =============================================================================
 // Error Types

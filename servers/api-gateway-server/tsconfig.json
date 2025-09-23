@@ -39,15 +39,8 @@
       "@tools/*": ["./src/tools/*"]
     }
   },
-  "include": [
-    "src/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "coverage",
-    "**/*.d.ts"
-  ],
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "coverage", "**/*.d.ts"],
   "ts-node": {
     "esm": true,
     "experimentalSpecifierResolution": "node"
