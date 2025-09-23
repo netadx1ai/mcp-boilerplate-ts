@@ -1,10 +1,10 @@
 /**
  * @fileoverview HTTP Transport Tests
- * 
+ *
  * Comprehensive test suite for the HTTP transport implementation,
  * covering transport lifecycle, message handling, error scenarios,
  * and integration with the MCP protocol.
- * 
+ *
  * @author MCP Boilerplate Team
  * @version 0.3.0
  */
@@ -23,7 +23,7 @@ class TestTool implements McpTool {
   readonly category = 'data' as const;
   readonly version = '1.0.0';
   readonly parameters = z.object({
-    message: z.string()
+    message: z.string(),
   });
   readonly examples = [];
 
@@ -31,7 +31,7 @@ class TestTool implements McpTool {
     const { message } = this.parameters.parse(params);
     return {
       success: true,
-      data: { echo: message, timestamp: new Date().toISOString() }
+      data: { echo: message, timestamp: new Date().toISOString() },
     };
   }
 }
@@ -74,7 +74,7 @@ describe('HttpTransport', () => {
       const config: Partial<HttpTransportConfig> = {
         port: testPort,
         host: 'localhost',
-        basePath: '/test-mcp'
+        basePath: '/test-mcp',
       };
       transport = new HttpTransport(config);
       expect(transport).toBeDefined();
@@ -82,14 +82,14 @@ describe('HttpTransport', () => {
 
     it('should start and stop transport successfully', async () => {
       transport = new HttpTransport({ port: testPort, host: 'localhost' });
-      
+
       await expect(transport.start()).resolves.toBeUndefined();
       await expect(transport.close()).resolves.toBeUndefined();
     });
 
     it('should throw error when starting already started transport', async () => {
       transport = new HttpTransport({ port: testPort, host: 'localhost' });
-      
+
       await transport.start();
       await expect(transport.start()).rejects.toThrow('HTTP transport already started');
     });
@@ -97,11 +97,11 @@ describe('HttpTransport', () => {
     it('should handle port conflicts gracefully', async () => {
       const transport1 = new HttpTransport({ port: testPort, host: 'localhost' });
       const transport2 = new HttpTransport({ port: testPort, host: 'localhost' });
-      
+
       await transport1.start();
-      
+
       await expect(transport2.start()).rejects.toThrow();
-      
+
       await transport1.close();
     });
   });
@@ -114,36 +114,35 @@ describe('HttpTransport', () => {
       tools.set('test-tool', new TestTool());
       tools.set('error-tool', new ErrorTool());
 
-      transport = new HttpTransport({ 
-        port: testPort, 
-        host: 'localhost',
-        basePath: '/mcp',
-        auth: { enabled: false }
-      }, tools);
-      
+      transport = new HttpTransport(
+        {
+          port: testPort,
+          host: 'localhost',
+          basePath: '/mcp',
+          auth: { enabled: false },
+        },
+        tools
+      );
+
       await transport.start();
       app = (transport as any)._app; // Access private app for testing
     });
 
     describe('Health Endpoint', () => {
       it('should return health status', async () => {
-        const response = await request(app)
-          .get('/mcp/health')
-          .expect(200);
+        const response = await request(app).get('/mcp/health').expect(200);
 
         expect(response.body).toMatchObject({
           status: 'healthy',
           sessionId: expect.any(String),
-          uptime: expect.any(Number)
+          uptime: expect.any(Number),
         });
       });
     });
 
     describe('Info Endpoint', () => {
       it('should return server information', async () => {
-        const response = await request(app)
-          .get('/mcp/info')
-          .expect(200);
+        const response = await request(app).get('/mcp/info').expect(200);
 
         expect(response.body).toMatchObject({
           name: 'MCP HTTP Transport',
@@ -151,26 +150,24 @@ describe('HttpTransport', () => {
           protocol: 'mcp',
           transport: 'http',
           sessionId: expect.any(String),
-          capabilities: expect.arrayContaining(['tools', 'rpc'])
+          capabilities: expect.arrayContaining(['tools', 'rpc']),
         });
       });
     });
 
     describe('Tools Endpoint', () => {
       it('should list available tools', async () => {
-        const response = await request(app)
-          .get('/mcp/tools')
-          .expect(200);
+        const response = await request(app).get('/mcp/tools').expect(200);
 
         expect(response.body).toMatchObject({
           tools: expect.arrayContaining([
             expect.objectContaining({
               name: 'test-tool',
               description: expect.any(String),
-              category: 'data'
-            })
+              category: 'data',
+            }),
           ]),
-          count: expect.any(Number)
+          count: expect.any(Number),
         });
       });
 
@@ -184,32 +181,26 @@ describe('HttpTransport', () => {
           success: true,
           data: {
             echo: 'Hello Test',
-            timestamp: expect.any(String)
-          }
+            timestamp: expect.any(String),
+          },
         });
       });
 
       it('should handle tool execution errors', async () => {
-        const response = await request(app)
-          .post('/mcp/tools/error-tool')
-          .send({})
-          .expect(500);
+        const response = await request(app).post('/mcp/tools/error-tool').send({}).expect(500);
 
         expect(response.body).toMatchObject({
           error: 'Tool Execution Failed',
-          message: expect.stringContaining('Test error')
+          message: expect.stringContaining('Test error'),
         });
       });
 
       it('should return 404 for non-existent tool', async () => {
-        const response = await request(app)
-          .post('/mcp/tools/non-existent')
-          .send({})
-          .expect(404);
+        const response = await request(app).post('/mcp/tools/non-existent').send({}).expect(404);
 
         expect(response.body).toMatchObject({
           error: 'Tool Not Found',
-          availableTools: expect.any(Array)
+          availableTools: expect.any(Array),
         });
       });
     });
@@ -219,38 +210,32 @@ describe('HttpTransport', () => {
         const rpcRequest = {
           jsonrpc: '2.0',
           method: 'tools/list',
-          id: 1
+          id: 1,
         };
 
-        const response = await request(app)
-          .post('/mcp/rpc')
-          .send(rpcRequest)
-          .expect(202);
+        const response = await request(app).post('/mcp/rpc').send(rpcRequest).expect(202);
 
         expect(response.body).toMatchObject({
           jsonrpc: '2.0',
           result: { accepted: true },
-          id: 1
+          id: 1,
         });
       });
 
       it('should reject invalid JSON-RPC request', async () => {
         const invalidRequest = {
-          method: 'test'
+          method: 'test',
           // Missing jsonrpc field
         };
 
-        const response = await request(app)
-          .post('/mcp/rpc')
-          .send(invalidRequest)
-          .expect(400);
+        const response = await request(app).post('/mcp/rpc').send(invalidRequest).expect(400);
 
         expect(response.body).toMatchObject({
           jsonrpc: '2.0',
           error: {
             code: -32600,
-            message: 'Invalid Request'
-          }
+            message: 'Invalid Request',
+          },
         });
       });
     });
@@ -266,16 +251,16 @@ describe('HttpTransport', () => {
           enabled: true,
           type: 'apikey',
           apiKeys: ['test-key-123'],
-          headerName: 'X-API-Key'
-        }
+          headerName: 'X-API-Key',
+        },
       });
-      
+
       await transport.start();
     });
 
     it('should allow access with valid API key', async () => {
       const app = (transport as any)._app;
-      
+
       const response = await request(app)
         .get('/mcp/tools')
         .set('X-API-Key', 'test-key-123')
@@ -286,27 +271,20 @@ describe('HttpTransport', () => {
 
     it('should reject requests without API key', async () => {
       const app = (transport as any)._app;
-      
-      await request(app)
-        .get('/mcp/tools')
-        .expect(401);
+
+      await request(app).get('/mcp/tools').expect(401);
     });
 
     it('should reject requests with invalid API key', async () => {
       const app = (transport as any)._app;
-      
-      await request(app)
-        .get('/mcp/tools')
-        .set('X-API-Key', 'invalid-key')
-        .expect(401);
+
+      await request(app).get('/mcp/tools').set('X-API-Key', 'invalid-key').expect(401);
     });
 
     it('should allow health check without authentication', async () => {
       const app = (transport as any)._app;
-      
-      await request(app)
-        .get('/mcp/health')
-        .expect(200);
+
+      await request(app).get('/mcp/health').expect(200);
     });
   });
 
@@ -320,36 +298,30 @@ describe('HttpTransport', () => {
         rateLimit: {
           enabled: true,
           windowMs: 1000, // 1 second window
-          maxRequests: 2 // Max 2 requests per second
-        }
+          maxRequests: 2, // Max 2 requests per second
+        },
       });
-      
+
       await transport.start();
     });
 
     it('should allow requests within rate limit', async () => {
       const app = (transport as any)._app;
-      
-      await request(app)
-        .get('/mcp/health')
-        .expect(200);
-      
-      await request(app)
-        .get('/mcp/health')
-        .expect(200);
+
+      await request(app).get('/mcp/health').expect(200);
+
+      await request(app).get('/mcp/health').expect(200);
     });
 
     it('should block requests exceeding rate limit', async () => {
       const app = (transport as any)._app;
-      
+
       // Make maximum allowed requests
       await request(app).get('/mcp/health').expect(200);
       await request(app).get('/mcp/health').expect(200);
-      
+
       // This should be rate limited
-      await request(app)
-        .get('/mcp/health')
-        .expect(429);
+      await request(app).get('/mcp/health').expect(429);
     });
   });
 
@@ -364,16 +336,16 @@ describe('HttpTransport', () => {
           origins: ['http://localhost:3000'],
           methods: ['GET', 'POST'],
           allowedHeaders: ['Content-Type'],
-          credentials: false
-        }
+          credentials: false,
+        },
       });
-      
+
       await transport.start();
     });
 
     it('should include CORS headers for allowed origins', async () => {
       const app = (transport as any)._app;
-      
+
       const response = await request(app)
         .get('/mcp/health')
         .set('Origin', 'http://localhost:3000')
@@ -384,7 +356,7 @@ describe('HttpTransport', () => {
 
     it('should handle preflight OPTIONS requests', async () => {
       const app = (transport as any)._app;
-      
+
       const response = await request(app)
         .options('/mcp/tools')
         .set('Origin', 'http://localhost:3000')
@@ -397,32 +369,30 @@ describe('HttpTransport', () => {
 
   describe('Error Handling', () => {
     beforeEach(async () => {
-      transport = new HttpTransport({ 
-        port: testPort, 
+      transport = new HttpTransport({
+        port: testPort,
         host: 'localhost',
         basePath: '/mcp',
-        auth: { enabled: false }
+        auth: { enabled: false },
       });
-      
+
       await transport.start();
     });
 
     it('should return 404 for non-existent endpoints', async () => {
       const app = (transport as any)._app;
-      
-      const response = await request(app)
-        .get('/mcp/non-existent')
-        .expect(404);
+
+      const response = await request(app).get('/mcp/non-existent').expect(404);
 
       expect(response.body).toMatchObject({
         error: 'Not Found',
-        message: expect.stringContaining('not found')
+        message: expect.stringContaining('not found'),
       });
     });
 
     it('should handle malformed JSON in request body', async () => {
       const app = (transport as any)._app;
-      
+
       await request(app)
         .post('/mcp/rpc')
         .send('invalid json')
@@ -432,10 +402,8 @@ describe('HttpTransport', () => {
 
     it('should include request ID in error responses', async () => {
       const app = (transport as any)._app;
-      
-      const response = await request(app)
-        .get('/mcp/non-existent')
-        .expect(404);
+
+      const response = await request(app).get('/mcp/non-existent').expect(404);
 
       expect(response.body.timestamp).toBeDefined();
       expect(response.headers['x-request-id']).toBeDefined();
@@ -450,11 +418,14 @@ describe('HttpTransportFactory', () => {
   });
 
   it('should create transport with authentication', () => {
-    const transport = HttpTransportFactory.createWithAuth({}, {
-      enabled: true,
-      type: 'apikey',
-      apiKeys: ['test-key']
-    });
+    const transport = HttpTransportFactory.createWithAuth(
+      {},
+      {
+        enabled: true,
+        type: 'apikey',
+        apiKeys: ['test-key'],
+      }
+    );
     expect(transport).toBeInstanceOf(HttpTransport);
   });
 
@@ -485,8 +456,8 @@ describe('HttpMcpServer Integration', () => {
       description: 'Test server',
       http: {
         port: testPort,
-        host: 'localhost'
-      }
+        host: 'localhost',
+      },
     });
 
     server.registerTool(new TestTool());
@@ -507,8 +478,8 @@ describe('HttpMcpServer Integration', () => {
       http: {
         port: testPort,
         host: 'localhost',
-        auth: { enabled: false }
-      }
+        auth: { enabled: false },
+      },
     });
 
     server.registerTool(new TestTool());
@@ -528,8 +499,8 @@ describe('HttpMcpServer Integration', () => {
       expect(response.body).toMatchObject({
         success: true,
         data: {
-          echo: 'Integration test'
-        }
+          echo: 'Integration test',
+        },
       });
     }
   });
@@ -542,8 +513,8 @@ describe('HttpMcpServer Integration', () => {
       enableStdio: true,
       http: {
         port: testPort,
-        host: 'localhost'
-      }
+        host: 'localhost',
+      },
     });
 
     await server.start();
@@ -560,18 +531,21 @@ describe('Transport Performance', () => {
 
   beforeEach(async () => {
     testPort = 8900 + Math.floor(Math.random() * 100);
-    
+
     const tools = new Map<string, McpTool>();
     tools.set('test-tool', new TestTool());
 
-    transport = new HttpTransport({
-      port: testPort,
-      host: 'localhost',
-      basePath: '/mcp',
-      auth: { enabled: false },
-      rateLimit: { enabled: false }
-    }, tools);
-    
+    transport = new HttpTransport(
+      {
+        port: testPort,
+        host: 'localhost',
+        basePath: '/mcp',
+        auth: { enabled: false },
+        rateLimit: { enabled: false },
+      },
+      tools
+    );
+
     await transport.start();
   });
 
@@ -584,22 +558,19 @@ describe('Transport Performance', () => {
   it('should handle concurrent requests efficiently', async () => {
     const app = (transport as any)._app;
     const concurrentRequests = 10;
-    
+
     const startTime = Date.now();
-    
+
     const promises = Array.from({ length: concurrentRequests }, () =>
-      request(app)
-        .post('/mcp/tools/test-tool')
-        .send({ message: 'Concurrent test' })
-        .expect(200)
+      request(app).post('/mcp/tools/test-tool').send({ message: 'Concurrent test' }).expect(200)
     );
 
     const responses = await Promise.all(promises);
     const endTime = Date.now();
-    
+
     expect(responses).toHaveLength(concurrentRequests);
     expect(endTime - startTime).toBeLessThan(5000); // Should complete within 5 seconds
-    
+
     responses.forEach(response => {
       expect(response.body.success).toBe(true);
     });
@@ -607,13 +578,11 @@ describe('Transport Performance', () => {
 
   it('should respond to health checks quickly', async () => {
     const app = (transport as any)._app;
-    
+
     const startTime = Date.now();
-    
-    await request(app)
-      .get('/mcp/health')
-      .expect(200);
-    
+
+    await request(app).get('/mcp/health').expect(200);
+
     const responseTime = Date.now() - startTime;
     expect(responseTime).toBeLessThan(100); // Should respond within 100ms
   });

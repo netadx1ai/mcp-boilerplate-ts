@@ -1,10 +1,10 @@
 /**
  * @fileoverview Core MCP Server Base Implementation
- * 
+ *
  * This module provides the base server class that integrates with the official
  * @modelcontextprotocol/sdk and provides the foundation for all MCP servers
  * in the boilerplate ecosystem.
- * 
+ *
  * Key Features:
  * - Official MCP SDK integration
  * - Lifecycle management (start/stop/restart)
@@ -13,7 +13,7 @@
  * - Event system for observability
  * - Configuration management
  * - Error handling and recovery
- * 
+ *
  * @author MCP Boilerplate Team
  * @version 0.3.0
  */
@@ -48,10 +48,10 @@ import { createMetricsCollector } from '../utils/metrics.js';
 
 /**
  * Base MCP Server implementation with official SDK integration
- * 
+ *
  * This class provides a production-ready foundation for building MCP servers
  * with proper lifecycle management, error handling, and observability.
- * 
+ *
  * @example
  * ```typescript
  * const server = new BaseMcpServer({
@@ -60,7 +60,7 @@ import { createMetricsCollector } from '../utils/metrics.js';
  *   description: 'My custom MCP server',
  *   port: 8001,
  * });
- * 
+ *
  * server.registerTool(new MyCustomTool());
  * await server.start();
  * ```
@@ -71,7 +71,7 @@ export class BaseMcpServer extends EventEmitter implements McpServer {
   private readonly _tools: Map<string, McpTool>;
   private readonly _server: Server;
   private readonly _metricsCollector: ReturnType<typeof createMetricsCollector>;
-  
+
   private _state: ServerState = 'stopped';
   private _startTime?: Date;
   private _requestCount = 0;
@@ -80,13 +80,13 @@ export class BaseMcpServer extends EventEmitter implements McpServer {
 
   /**
    * Create new MCP server instance
-   * 
+   *
    * @param config - Server configuration
    * @throws {ServerConfigError} When configuration is invalid
    */
   constructor(config: Partial<McpServerConfig>) {
     super();
-    
+
     try {
       this._config = validateConfig({ ...createDefaultConfig(), ...config });
     } catch (error) {
@@ -98,7 +98,7 @@ export class BaseMcpServer extends EventEmitter implements McpServer {
     this._logger = createDefaultLogger(this._config.logging);
     this._tools = new Map();
     this._metricsCollector = createMetricsCollector(this._config.name);
-    
+
     // Initialize official MCP SDK server
     this._server = new Server(
       {
@@ -114,9 +114,9 @@ export class BaseMcpServer extends EventEmitter implements McpServer {
     );
 
     this._initializeHandlers();
-    this._logger.info('MCP Server initialized', { 
+    this._logger.info('MCP Server initialized', {
       name: this._config.name,
-      version: this._config.version 
+      version: this._config.version,
     });
   }
 
@@ -144,7 +144,7 @@ export class BaseMcpServer extends EventEmitter implements McpServer {
   get stats(): ServerStats {
     const now = Date.now();
     const uptime = this._startTime ? now - this._startTime.getTime() : 0;
-    
+
     return {
       state: this._state,
       uptime: Math.floor(uptime / 1000), // seconds
@@ -165,7 +165,7 @@ export class BaseMcpServer extends EventEmitter implements McpServer {
 
   /**
    * Start the MCP server
-   * 
+   *
    * @throws {ServerConfigError} When server cannot be started
    */
   async start(): Promise<void> {
@@ -184,27 +184,26 @@ export class BaseMcpServer extends EventEmitter implements McpServer {
 
       this._startTime = new Date();
       this._setState('running');
-      
-      this._emit('server:started', { 
+
+      this._emit('server:started', {
         port: this._config.port,
-        toolCount: this._tools.size 
+        toolCount: this._tools.size,
       });
-      
+
       this._logger.info('MCP server started successfully', {
         port: this._config.port,
         toolsRegistered: this._tools.size,
         uptime: 0,
       });
-
     } catch (error) {
       this._setState('error');
       const errorMessage = error instanceof Error ? error.message : String(error);
       this._lastError = errorMessage;
       this._errorCount++;
-      
+
       this._emit('server:error', { error: errorMessage });
       this._logger.error('Failed to start server', { error: errorMessage });
-      
+
       throw new ServerConfigError(`Failed to start server: ${errorMessage}`);
     }
   }
@@ -225,29 +224,28 @@ export class BaseMcpServer extends EventEmitter implements McpServer {
       // Graceful shutdown with timeout
       await Promise.race([
         this._server.close(),
-        new Promise((_, reject) => 
+        new Promise((_, reject) =>
           setTimeout(() => reject(new Error('Shutdown timeout')), DEFAULT_TIMEOUTS.SERVER_SHUTDOWN)
         ),
       ]);
 
       this._setState('stopped');
       this._startTime = undefined;
-      
-      this._emit('server:stopped', { 
-        finalStats: this.stats 
-      });
-      
-      this._logger.info('MCP server stopped successfully');
 
+      this._emit('server:stopped', {
+        finalStats: this.stats,
+      });
+
+      this._logger.info('MCP server stopped successfully');
     } catch (error) {
       this._setState('error');
       const errorMessage = error instanceof Error ? error.message : String(error);
       this._lastError = errorMessage;
       this._errorCount++;
-      
+
       this._emit('server:error', { error: errorMessage });
       this._logger.error('Error during server shutdown', { error: errorMessage });
-      
+
       throw new ServerConfigError(`Failed to stop server: ${errorMessage}`);
     }
   }
@@ -305,8 +303,8 @@ export class BaseMcpServer extends EventEmitter implements McpServer {
     const overallStatus = Object.values(checks).every(check => check.status === 'pass')
       ? 'healthy'
       : Object.values(checks).some(check => check.status === 'fail')
-      ? 'unhealthy'
-      : 'degraded';
+        ? 'unhealthy'
+        : 'degraded';
 
     return {
       status: overallStatus,
@@ -318,7 +316,7 @@ export class BaseMcpServer extends EventEmitter implements McpServer {
 
   /**
    * Register a new tool with the server
-   * 
+   *
    * @param tool - Tool to register
    * @throws {ValidationError} When tool is invalid
    */
@@ -332,16 +330,16 @@ export class BaseMcpServer extends EventEmitter implements McpServer {
     }
 
     this._tools.set(tool.name, tool);
-    this._logger.info('Tool registered', { 
+    this._logger.info('Tool registered', {
       toolName: tool.name,
       category: tool.category,
-      version: tool.version 
+      version: tool.version,
     });
   }
 
   /**
    * Register multiple tools
-   * 
+   *
    * @param tools - Array of tools to register
    */
   registerTools(tools: McpTool[]): void {
@@ -352,7 +350,7 @@ export class BaseMcpServer extends EventEmitter implements McpServer {
 
   /**
    * Get a specific tool by name
-   * 
+   *
    * @param name - Tool name
    * @returns Tool instance or undefined
    */
@@ -362,7 +360,7 @@ export class BaseMcpServer extends EventEmitter implements McpServer {
 
   /**
    * List all registered tools
-   * 
+   *
    * @returns Array of all tools
    */
   listTools(): McpTool[] {
@@ -382,7 +380,7 @@ export class BaseMcpServer extends EventEmitter implements McpServer {
 
   /**
    * Add event listener
-   * 
+   *
    * @param event - Event type to listen for
    * @param listener - Event handler function
    */
@@ -392,7 +390,7 @@ export class BaseMcpServer extends EventEmitter implements McpServer {
 
   /**
    * Remove event listener
-   * 
+   *
    * @param event - Event type
    * @param listener - Event handler to remove
    */
@@ -421,7 +419,7 @@ export class BaseMcpServer extends EventEmitter implements McpServer {
     });
 
     // Call tool handler
-    this._server.setRequestHandler(CallToolRequestSchema, async (request) => {
+    this._server.setRequestHandler(CallToolRequestSchema, async request => {
       const startTime = Date.now();
       this._requestCount++;
 
@@ -438,7 +436,7 @@ export class BaseMcpServer extends EventEmitter implements McpServer {
         // Execute tool with timeout
         const result = await Promise.race([
           tool.execute(args ?? {}),
-          new Promise<never>((_, reject) => 
+          new Promise<never>((_, reject) =>
             setTimeout(
               () => reject(new Error('Tool execution timeout')),
               DEFAULT_TIMEOUTS.TOOL_EXECUTION
@@ -473,11 +471,10 @@ export class BaseMcpServer extends EventEmitter implements McpServer {
             },
           ],
         };
-
       } catch (error) {
         const executionTime = Date.now() - startTime;
         const errorMessage = error instanceof Error ? error.message : String(error);
-        
+
         this._errorCount++;
         this._lastError = errorMessage;
         this._metricsCollector.recordToolExecution(request.params.name, executionTime, false);
@@ -498,14 +495,18 @@ export class BaseMcpServer extends EventEmitter implements McpServer {
           content: [
             {
               type: 'text',
-              text: JSON.stringify({
-                success: false,
-                error: errorMessage,
-                metadata: {
-                  executionTime,
-                  timestamp: new Date().toISOString(),
+              text: JSON.stringify(
+                {
+                  success: false,
+                  error: errorMessage,
+                  metadata: {
+                    executionTime,
+                    timestamp: new Date().toISOString(),
+                  },
                 },
-              }, null, 2),
+                null,
+                2
+              ),
             },
           ],
         };
@@ -516,7 +517,7 @@ export class BaseMcpServer extends EventEmitter implements McpServer {
     this._server.onerror = (error: Error) => {
       this._errorCount++;
       this._lastError = error.message;
-      
+
       this._emit('server:error', { error: error.message });
       this._logger.error('Server error', { error: error.message, stack: error.stack });
     };
@@ -524,20 +525,20 @@ export class BaseMcpServer extends EventEmitter implements McpServer {
 
   /**
    * Set server state and emit events
-   * 
+   *
    * @param newState - New server state
    */
   private _setState(newState: ServerState): void {
     const oldState = this._state;
     this._state = newState;
-    
+
     this._logger.debug('State transition', { from: oldState, to: newState });
     this.emit('stateChange', { from: oldState, to: newState });
   }
 
   /**
    * Emit server event with proper payload structure
-   * 
+   *
    * @param type - Event type
    * @param data - Event data
    */
@@ -554,7 +555,7 @@ export class BaseMcpServer extends EventEmitter implements McpServer {
 
   /**
    * Validate tool registration
-   * 
+   *
    * @param tool - Tool to validate
    * @throws {ValidationError} When tool is invalid
    */
@@ -578,7 +579,7 @@ export class BaseMcpServer extends EventEmitter implements McpServer {
 
   /**
    * Create health check for specific component
-   * 
+   *
    * @param name - Component name
    * @param checkFn - Health check function
    * @returns Health check result
@@ -588,11 +589,11 @@ export class BaseMcpServer extends EventEmitter implements McpServer {
     checkFn: () => Promise<boolean> | boolean
   ): Promise<HealthCheck> {
     const startTime = Date.now();
-    
+
     try {
       const result = await checkFn();
       const duration = Date.now() - startTime;
-      
+
       return {
         status: result ? 'pass' : 'fail',
         duration,
@@ -600,7 +601,7 @@ export class BaseMcpServer extends EventEmitter implements McpServer {
     } catch (error) {
       const duration = Date.now() - startTime;
       const message = error instanceof Error ? error.message : String(error);
-      
+
       return {
         status: 'fail',
         message,
@@ -612,7 +613,7 @@ export class BaseMcpServer extends EventEmitter implements McpServer {
 
 /**
  * Server builder for fluent API construction
- * 
+ *
  * @example
  * ```typescript
  * const server = await new ServerBuilder()
@@ -628,7 +629,7 @@ export class ServerBuilder {
 
   /**
    * Set server configuration
-   * 
+   *
    * @param config - Partial server configuration
    * @returns Builder instance for chaining
    */
@@ -639,7 +640,7 @@ export class ServerBuilder {
 
   /**
    * Add a single tool
-   * 
+   *
    * @param tool - Tool to add
    * @returns Builder instance for chaining
    */
@@ -650,7 +651,7 @@ export class ServerBuilder {
 
   /**
    * Add multiple tools
-   * 
+   *
    * @param tools - Array of tools to add
    * @returns Builder instance for chaining
    */
@@ -661,7 +662,7 @@ export class ServerBuilder {
 
   /**
    * Configure authentication (placeholder for future implementation)
-   * 
+   *
    * @param _auth - Authentication configuration
    * @returns Builder instance for chaining
    */
@@ -672,7 +673,7 @@ export class ServerBuilder {
 
   /**
    * Configure database (placeholder for future implementation)
-   * 
+   *
    * @param _db - Database configuration
    * @returns Builder instance for chaining
    */
@@ -683,7 +684,7 @@ export class ServerBuilder {
 
   /**
    * Configure external API (placeholder for future implementation)
-   * 
+   *
    * @param _api - API configuration
    * @returns Builder instance for chaining
    */
@@ -694,13 +695,13 @@ export class ServerBuilder {
 
   /**
    * Build and configure the server instance
-   * 
+   *
    * @returns Configured MCP server
    * @throws {ServerConfigError} When configuration is invalid
    */
   async build(): Promise<McpServer> {
     const server = new BaseMcpServer(this._config);
-    
+
     // Register all tools
     for (const tool of this._tools) {
       server.registerTool(tool);
@@ -712,7 +713,7 @@ export class ServerBuilder {
 
 /**
  * Create a new server builder instance
- * 
+ *
  * @returns New ServerBuilder instance
  */
 export function createServerBuilder(): ServerBuilder {
@@ -721,7 +722,7 @@ export function createServerBuilder(): ServerBuilder {
 
 /**
  * Create a basic MCP server with minimal configuration
- * 
+ *
  * @param name - Server name
  * @param tools - Tools to register
  * @returns Configured MCP server

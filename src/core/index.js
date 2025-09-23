@@ -16,8 +16,8 @@ BaseMcpServer as Server, ServerBuilder as Builder, } from './server.js';
 import { createServerBuilder } from './server.js';
 // Utility re-exports for convenience
 export { createDefaultConfig, loadCompleteConfig, validateConfig, isDevelopment, isProduction, isTest, } from '../utils/config.js';
-export { createDefaultLogger, createRequestLogger, createToolLogger, } from '../utils/logger.js';
-export { createMetricsCollector, } from '../utils/metrics.js';
+export { createDefaultLogger, createRequestLogger, createToolLogger } from '../utils/logger.js';
+export { createMetricsCollector } from '../utils/metrics.js';
 // =============================================================================
 // Quick Start Factory Functions
 // =============================================================================

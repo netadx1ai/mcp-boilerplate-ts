@@ -114,7 +114,12 @@ interface MigrationInfo {
 // =============================================================================
 
 const connections = new Map<string, DatabaseConfig>();
-const queryHistory: Array<{ query: string; timestamp: string; executionTime: number; rowCount: number }> = [];
+const queryHistory: Array<{
+  query: string;
+  timestamp: string;
+  executionTime: number;
+  rowCount: number;
+}> = [];
 const mockSchemas = new Map<string, SchemaInfo>();
 
 // Initialize mock data
@@ -170,7 +175,18 @@ function registerConfigureConnectionTool(server: McpServer) {
         testConnection: z.boolean().default(true).describe('Test connection after configuration'),
       },
     },
-    async ({ connectionName, type, host, port, database, username, password, poolMin, poolMax, testConnection }) => {
+    async ({
+      connectionName,
+      type,
+      host,
+      port,
+      database,
+      username,
+      password,
+      poolMin,
+      poolMax,
+      testConnection,
+    }) => {
       try {
         const config: DatabaseConfig = {
           type,
@@ -268,25 +284,30 @@ function registerExecuteQueryTool(server: McpServer) {
 
         // Safety checks
         const lowerQuery = query.toLowerCase().trim();
-        const isModifying = lowerQuery.startsWith('insert') || 
-                          lowerQuery.startsWith('update') || 
-                          lowerQuery.startsWith('delete') || 
-                          lowerQuery.startsWith('drop') || 
-                          lowerQuery.startsWith('alter');
+        const isModifying =
+          lowerQuery.startsWith('insert') ||
+          lowerQuery.startsWith('update') ||
+          lowerQuery.startsWith('delete') ||
+          lowerQuery.startsWith('drop') ||
+          lowerQuery.startsWith('alter');
 
         if (dryRun) {
           return {
             content: [
               {
                 type: 'text',
-                text: JSON.stringify({
-                  dryRun: true,
-                  query: query.trim(),
-                  parameters: params,
-                  isModifying,
-                  estimatedCost: Math.floor(Math.random() * 1000),
-                  validation: 'Query syntax appears valid (mock validation)',
-                }, null, 2),
+                text: JSON.stringify(
+                  {
+                    dryRun: true,
+                    query: query.trim(),
+                    parameters: params,
+                    isModifying,
+                    estimatedCost: Math.floor(Math.random() * 1000),
+                    validation: 'Query syntax appears valid (mock validation)',
+                  },
+                  null,
+                  2
+                ),
               },
             ],
           };
@@ -295,7 +316,7 @@ function registerExecuteQueryTool(server: McpServer) {
         // Mock query execution
         const startTime = Date.now();
         const executionTime = Math.floor(Math.random() * 500) + 10;
-        
+
         // Generate mock results based on query type
         let mockResults: any[];
         let rowCount: number;
@@ -447,25 +468,30 @@ function registerGetSchemaTool(server: McpServer) {
 
         let sampleData = null;
         if (includeData) {
-          sampleData = mockTables.reduce((acc, table) => {
-            acc[table] = Array.from({ length: 3 }, (_, i) => ({
-              id: i + 1,
-              name: `Sample ${table} ${i + 1}`,
-              created_at: new Date().toISOString(),
-            }));
-            return acc;
-          }, {} as Record<string, any[]>);
+          sampleData = mockTables.reduce(
+            (acc, table) => {
+              acc[table] = Array.from({ length: 3 }, (_, i) => ({
+                id: i + 1,
+                name: `Sample ${table} ${i + 1}`,
+                created_at: new Date().toISOString(),
+              }));
+              return acc;
+            },
+            {} as Record<string, any[]>
+          );
         }
 
         const response = {
           success: true,
           connection: connectionName,
           databaseType: connection.type,
-          schema: detailed ? schemaInfo : {
-            tableCount: schemaInfo.tables.length,
-            viewCount: schemaInfo.views.length,
-            indexCount: schemaInfo.indexes.length,
-          },
+          schema: detailed
+            ? schemaInfo
+            : {
+                tableCount: schemaInfo.tables.length,
+                viewCount: schemaInfo.views.length,
+                indexCount: schemaInfo.indexes.length,
+              },
           ...(sampleData && { sampleData }),
           timestamp: new Date().toISOString(),
         };
@@ -560,22 +586,27 @@ function registerRunMigrationTool(server: McpServer) {
         }
 
         if (dryRun) {
-          const mockSql = direction === 'up' 
-            ? `CREATE TABLE ${migrationId.split('_').slice(1).join('_')} (id SERIAL PRIMARY KEY);`
-            : `DROP TABLE ${migrationId.split('_').slice(1).join('_')};`;
+          const mockSql =
+            direction === 'up'
+              ? `CREATE TABLE ${migrationId.split('_').slice(1).join('_')} (id SERIAL PRIMARY KEY);`
+              : `DROP TABLE ${migrationId.split('_').slice(1).join('_')};`;
 
           return {
             content: [
               {
                 type: 'text',
-                text: JSON.stringify({
-                  dryRun: true,
-                  migration: migration,
-                  direction,
-                  sql: mockSql,
-                  estimatedTime: '2.5s',
-                  warnings: direction === 'down' ? ['This will delete data'] : [],
-                }, null, 2),
+                text: JSON.stringify(
+                  {
+                    dryRun: true,
+                    migration: migration,
+                    direction,
+                    sql: mockSql,
+                    estimatedTime: '2.5s',
+                    warnings: direction === 'down' ? ['This will delete data'] : [],
+                  },
+                  null,
+                  2
+                ),
               },
             ],
           };
@@ -583,7 +614,7 @@ function registerRunMigrationTool(server: McpServer) {
 
         // Mock execution
         const executionTime = Math.floor(Math.random() * 3000) + 500;
-        
+
         if (direction === 'up' && migration.status === 'executed' && !force) {
           return {
             content: [
@@ -645,7 +676,10 @@ function registerTransactionTool(server: McpServer) {
         connectionName: z.string().describe('Database connection name'),
         action: z.enum(['begin', 'commit', 'rollback', 'status']).describe('Transaction action'),
         transactionId: z.string().optional().describe('Transaction ID for commit/rollback'),
-        isolationLevel: z.enum(['READ_uncommitted', 'read_committed', 'repeatable_read', 'serializable']).optional().describe('Transaction isolation level'),
+        isolationLevel: z
+          .enum(['READ_uncommitted', 'read_committed', 'repeatable_read', 'serializable'])
+          .optional()
+          .describe('Transaction isolation level'),
       },
     },
     async ({ connectionName, action, transactionId, isolationLevel }) => {
@@ -666,18 +700,22 @@ function registerTransactionTool(server: McpServer) {
         switch (action) {
           case 'begin': {
             const newTransactionId = `txn_${Math.random().toString(36).substr(2, 9)}`;
-            
+
             return {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify({
-                    success: true,
-                    action: 'begin',
-                    transactionId: newTransactionId,
-                    isolationLevel: isolationLevel || 'read_committed',
-                    timestamp: new Date().toISOString(),
-                  }, null, 2),
+                  text: JSON.stringify(
+                    {
+                      success: true,
+                      action: 'begin',
+                      transactionId: newTransactionId,
+                      isolationLevel: isolationLevel || 'read_committed',
+                      timestamp: new Date().toISOString(),
+                    },
+                    null,
+                    2
+                  ),
                 },
               ],
             };
@@ -700,14 +738,18 @@ function registerTransactionTool(server: McpServer) {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify({
-                    success: true,
-                    action: 'commit',
-                    transactionId,
-                    commitTime: `${Math.floor(Math.random() * 100) + 10}ms`,
-                    changesCommitted: Math.floor(Math.random() * 50) + 1,
-                    timestamp: new Date().toISOString(),
-                  }, null, 2),
+                  text: JSON.stringify(
+                    {
+                      success: true,
+                      action: 'commit',
+                      transactionId,
+                      commitTime: `${Math.floor(Math.random() * 100) + 10}ms`,
+                      changesCommitted: Math.floor(Math.random() * 50) + 1,
+                      timestamp: new Date().toISOString(),
+                    },
+                    null,
+                    2
+                  ),
                 },
               ],
             };
@@ -730,14 +772,18 @@ function registerTransactionTool(server: McpServer) {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify({
-                    success: true,
-                    action: 'rollback',
-                    transactionId,
-                    rollbackTime: `${Math.floor(Math.random() * 50) + 5}ms`,
-                    changesRolledBack: Math.floor(Math.random() * 20) + 1,
-                    timestamp: new Date().toISOString(),
-                  }, null, 2),
+                  text: JSON.stringify(
+                    {
+                      success: true,
+                      action: 'rollback',
+                      transactionId,
+                      rollbackTime: `${Math.floor(Math.random() * 50) + 5}ms`,
+                      changesRolledBack: Math.floor(Math.random() * 20) + 1,
+                      timestamp: new Date().toISOString(),
+                    },
+                    null,
+                    2
+                  ),
                 },
               ],
             };
@@ -758,12 +804,16 @@ function registerTransactionTool(server: McpServer) {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify({
-                    connection: connectionName,
-                    activeTransactions,
-                    totalTransactions: queryHistory.length,
-                    timestamp: new Date().toISOString(),
-                  }, null, 2),
+                  text: JSON.stringify(
+                    {
+                      connection: connectionName,
+                      activeTransactions,
+                      totalTransactions: queryHistory.length,
+                      timestamp: new Date().toISOString(),
+                    },
+                    null,
+                    2
+                  ),
                 },
               ],
             };
@@ -812,8 +862,8 @@ function registerMonitorPerformanceTool(server: McpServer) {
     },
     async ({ connectionName, includeSlowQueries, timePeriod }) => {
       try {
-        const connectionsToMonitor = connectionName 
-          ? [connectionName] 
+        const connectionsToMonitor = connectionName
+          ? [connectionName]
           : Array.from(connections.keys());
 
         const performanceData = [];
@@ -859,12 +909,16 @@ function registerMonitorPerformanceTool(server: McpServer) {
           content: [
             {
               type: 'text',
-              text: JSON.stringify({
-                timePeriod: `${timePeriod}s`,
-                monitoredConnections: performanceData.length,
-                performanceData,
-                timestamp: new Date().toISOString(),
-              }, null, 2),
+              text: JSON.stringify(
+                {
+                  timePeriod: `${timePeriod}s`,
+                  monitoredConnections: performanceData.length,
+                  performanceData,
+                  timestamp: new Date().toISOString(),
+                },
+                null,
+                2
+              ),
             },
           ],
         };
@@ -917,11 +971,11 @@ function registerCreateBackupTool(server: McpServer) {
 
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
         const finalBackupName = backupName || `${connectionName}_backup_${timestamp}`;
-        
+
         // Mock backup process
         const backupSize = Math.floor(Math.random() * 1000000) + 100000; // 100KB - 1MB
         const compressedSize = compress ? Math.floor(backupSize * 0.3) : backupSize;
-        
+
         const response = {
           success: true,
           backupName: finalBackupName,
@@ -936,7 +990,9 @@ function registerCreateBackupTool(server: McpServer) {
             filename: `${finalBackupName}.${connection.type === 'postgresql' ? 'sql' : connection.type === 'mysql' ? 'sql' : 'db'}${compress ? '.gz' : ''}`,
             originalSize: `${Math.floor(backupSize / 1024)}KB`,
             compressedSize: compress ? `${Math.floor(compressedSize / 1024)}KB` : undefined,
-            compressionRatio: compress ? `${Math.floor((1 - compressedSize / backupSize) * 100)}%` : undefined,
+            compressionRatio: compress
+              ? `${Math.floor((1 - compressedSize / backupSize) * 100)}%`
+              : undefined,
             executionTime: `${Math.floor(Math.random() * 10000) + 1000}ms`,
             tablesBackedUp: tables?.length || Math.floor(Math.random() * 10) + 5,
           },
@@ -980,7 +1036,10 @@ function registerRestoreBackupTool(server: McpServer) {
         backupFile: z.string().describe('Backup file path or name'),
         force: z.boolean().default(false).describe('Force restore even if target database exists'),
         verify: z.boolean().default(true).describe('Verify backup integrity before restore'),
-        createDatabase: z.boolean().default(false).describe('Create target database if it does not exist'),
+        createDatabase: z
+          .boolean()
+          .default(false)
+          .describe('Create target database if it does not exist'),
       },
     },
     async ({ connectionName, backupFile, force, verify, createDatabase }) => {
@@ -1012,11 +1071,15 @@ function registerRestoreBackupTool(server: McpServer) {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify({
-                    success: false,
-                    error: 'Backup file verification failed',
-                    verification: verificationResult,
-                  }, null, 2),
+                  text: JSON.stringify(
+                    {
+                      success: false,
+                      error: 'Backup file verification failed',
+                      verification: verificationResult,
+                    },
+                    null,
+                    2
+                  ),
                 },
               ],
               isError: true,
@@ -1026,7 +1089,7 @@ function registerRestoreBackupTool(server: McpServer) {
 
         // Mock restore process
         const restoreTime = Math.floor(Math.random() * 20000) + 5000; // 5-25 seconds
-        
+
         const response = {
           success: true,
           connection: connectionName,
@@ -1082,15 +1145,25 @@ function registerQueryBuilderTool(server: McpServer) {
         table: z.string().describe('Target table name'),
         columns: z.array(z.string()).optional().describe('Columns for SELECT or INSERT'),
         where: z.record(z.any()).optional().describe('WHERE conditions'),
-        joins: z.array(z.object({
-          type: z.enum(['inner', 'left', 'right', 'full']),
-          table: z.string(),
-          on: z.string(),
-        })).optional().describe('JOIN clauses'),
-        orderBy: z.array(z.object({
-          column: z.string(),
-          direction: z.enum(['asc', 'desc']).default('asc'),
-        })).optional().describe('ORDER BY clauses'),
+        joins: z
+          .array(
+            z.object({
+              type: z.enum(['inner', 'left', 'right', 'full']),
+              table: z.string(),
+              on: z.string(),
+            })
+          )
+          .optional()
+          .describe('JOIN clauses'),
+        orderBy: z
+          .array(
+            z.object({
+              column: z.string(),
+              direction: z.enum(['asc', 'desc']).default('asc'),
+            })
+          )
+          .optional()
+          .describe('ORDER BY clauses'),
         limit: z.number().optional().describe('LIMIT clause'),
         data: z.record(z.any()).optional().describe('Data for INSERT/UPDATE'),
       },
@@ -1104,13 +1177,13 @@ function registerQueryBuilderTool(server: McpServer) {
           case 'select': {
             const selectColumns = columns?.join(', ') || '*';
             query = `SELECT ${selectColumns} FROM ${table}`;
-            
+
             if (joins) {
               for (const join of joins) {
                 query += ` ${join.type.toUpperCase()} JOIN ${join.table} ON ${join.on}`;
               }
             }
-            
+
             if (where) {
               const conditions = Object.entries(where).map(([key, value], index) => {
                 params.push(value);
@@ -1118,12 +1191,12 @@ function registerQueryBuilderTool(server: McpServer) {
               });
               query += ` WHERE ${conditions.join(' AND ')}`;
             }
-            
+
             if (orderBy) {
               const orderClauses = orderBy.map(o => `${o.column} ${o.direction.toUpperCase()}`);
               query += ` ORDER BY ${orderClauses.join(', ')}`;
             }
-            
+
             if (limit) {
               query += ` LIMIT ${limit}`;
             }
@@ -1146,7 +1219,7 @@ function registerQueryBuilderTool(server: McpServer) {
             const insertColumns = Object.keys(data);
             const insertValues = Object.values(data);
             const placeholders = insertValues.map((_, index) => `$${index + 1}`);
-            
+
             query = `INSERT INTO ${table} (${insertColumns.join(', ')}) VALUES (${placeholders.join(', ')})`;
             params.push(...insertValues);
             break;
@@ -1169,9 +1242,9 @@ function registerQueryBuilderTool(server: McpServer) {
               params.push(value);
               return `${key} = $${index + 1}`;
             });
-            
+
             query = `UPDATE ${table} SET ${setClauses.join(', ')}`;
-            
+
             if (where) {
               const conditions = Object.entries(where).map(([key, value], index) => {
                 params.push(value);
@@ -1184,7 +1257,7 @@ function registerQueryBuilderTool(server: McpServer) {
 
           case 'delete': {
             query = `DELETE FROM ${table}`;
-            
+
             if (where) {
               const conditions = Object.entries(where).map(([key, value], index) => {
                 params.push(value);
@@ -1301,9 +1374,10 @@ function registerStatusTool(server: McpServer) {
         }
 
         if (includePerformance) {
-          const avgExecutionTime = queryHistory.length > 0
-            ? queryHistory.reduce((sum, q) => sum + q.executionTime, 0) / queryHistory.length
-            : 0;
+          const avgExecutionTime =
+            queryHistory.length > 0
+              ? queryHistory.reduce((sum, q) => sum + q.executionTime, 0) / queryHistory.length
+              : 0;
 
           (status as any).performance = {
             totalQueries: queryHistory.length,
@@ -1374,7 +1448,13 @@ function generateMockColumns(tableName: string): ColumnInfo[] {
         ...baseColumns,
         { name: 'email', type: 'varchar(255)', nullable: false, primaryKey: false },
         { name: 'name', type: 'varchar(255)', nullable: false, primaryKey: false },
-        { name: 'is_active', type: 'boolean', nullable: false, primaryKey: false, defaultValue: 'true' },
+        {
+          name: 'is_active',
+          type: 'boolean',
+          nullable: false,
+          primaryKey: false,
+          defaultValue: 'true',
+        },
       ];
     case 'posts':
       return [
@@ -1382,7 +1462,13 @@ function generateMockColumns(tableName: string): ColumnInfo[] {
         { name: 'title', type: 'varchar(255)', nullable: false, primaryKey: false },
         { name: 'content', type: 'text', nullable: true, primaryKey: false },
         { name: 'user_id', type: 'integer', nullable: false, primaryKey: false },
-        { name: 'published', type: 'boolean', nullable: false, primaryKey: false, defaultValue: 'false' },
+        {
+          name: 'published',
+          type: 'boolean',
+          nullable: false,
+          primaryKey: false,
+          defaultValue: 'false',
+        },
       ];
     case 'comments':
       return [
@@ -1472,7 +1558,9 @@ async function main(): Promise<void> {
     console.error(`🚀 Starting ${SERVER_NAME} v${SERVER_VERSION}`);
     console.error(`📝 ${SERVER_DESCRIPTION}`);
     console.error('🔌 Transport: stdio');
-    console.error('🛠️ Tools: configure_connection, execute_query, get_schema, run_migration, manage_transaction, monitor_performance, create_backup, restore_backup, build_query, get_server_status');
+    console.error(
+      '🛠️ Tools: configure_connection, execute_query, get_schema, run_migration, manage_transaction, monitor_performance, create_backup, restore_backup, build_query, get_server_status'
+    );
     console.error('📡 Ready to receive MCP requests...\n');
 
     // Create server

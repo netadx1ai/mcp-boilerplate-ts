@@ -1,0 +1,59 @@
+# Dependencies
+node_modules
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build outputs
+dist/
+build/
+coverage/
+.nyc_output/
+*.tsbuildinfo
+
+# Config files that might have ESM/CommonJS conflicts
+.eslintrc.js
+.eslintrc.cjs
+.prettierrc.js
+.prettierrc.cjs
+jest.config.js
+jest.config.cjs
+
+# Generated files
+docs/generated/
+typedoc/
+api-docs/
+
+# Logs
+*.log
+logs/
+
+# Cache
+.cache/
+.jest-cache/
+.eslintcache
+
+# Environment files
+.env*
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Deployment
+deployment/kubernetes/generated/
+deployment/docker/generated/
+
+# Temporary
+tmp/
+temp/
+.tmp/
+
+# Archives
+*.tar.gz
+*.zip
+*.tgz

@@ -1,9 +1,9 @@
 /**
  * @fileoverview Basic Test Suite
- * 
+ *
  * Basic tests to verify Jest ES modules configuration and core functionality
  * of the MCP TypeScript boilerplate ecosystem.
- * 
+ *
  * @author MCP Boilerplate Team
  * @version 1.0.0
  */
@@ -24,11 +24,11 @@ describe('Basic TypeScript and Jest Configuration', () => {
 
   test('should support async/await', async () => {
     const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-    
+
     const start = Date.now();
     await delay(10);
     const elapsed = Date.now() - start;
-    
+
     expect(elapsed).toBeGreaterThanOrEqual(8); // Allow for timing variance
   });
 
@@ -72,10 +72,10 @@ describe('Basic TypeScript and Jest Configuration', () => {
 describe('Utility Functions', () => {
   test('should generate unique IDs', () => {
     const generateId = () => `id_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     const id1 = generateId();
     const id2 = generateId();
-    
+
     expect(id1).not.toBe(id2);
     expect(id1).toMatch(/^id_[a-z0-9]{9}$/);
     expect(id2).toMatch(/^id_[a-z0-9]{9}$/);
@@ -83,9 +83,9 @@ describe('Utility Functions', () => {
 
   test('should handle error objects', () => {
     const createError = (message: string) => new Error(message);
-    
+
     const error = createError('Test error');
-    
+
     expect(error).toBeInstanceOf(Error);
     expect(error.message).toBe('Test error');
     expect(error.stack).toBeDefined();
@@ -93,7 +93,7 @@ describe('Utility Functions', () => {
 
   test('should validate timestamps', () => {
     const now = new Date().toISOString();
-    
+
     expect(now).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
     expect(new Date(now)).toBeInstanceOf(Date);
   });
@@ -155,7 +155,7 @@ describe('Mock MCP Server Structure', () => {
     };
 
     let caughtError: Error | null = null;
-    
+
     try {
       await errorTool.handler({});
     } catch (error) {
@@ -174,14 +174,14 @@ describe('Mock MCP Server Structure', () => {
 describe('Performance Tests', () => {
   test('should execute quickly', async () => {
     const start = Date.now();
-    
+
     // Simulate some work
     const data = Array.from({ length: 1000 }, (_, i) => ({ id: i, value: Math.random() }));
     const filtered = data.filter(item => item.value > 0.5);
     const mapped = filtered.map(item => ({ ...item, doubled: item.value * 2 }));
-    
+
     const elapsed = Date.now() - start;
-    
+
     expect(elapsed).toBeLessThan(100); // Should be very fast
     expect(mapped.length).toBeGreaterThan(0);
     expect(mapped.length).toBeLessThanOrEqual(1000);
@@ -199,9 +199,7 @@ describe('Performance Tests', () => {
 
     expect(results).toHaveLength(10);
     expect(elapsed).toBeLessThan(100); // Should complete quickly
-    expect(results).toEqual(expect.arrayContaining([
-      expect.stringMatching(/^task-\d+$/)
-    ]));
+    expect(results).toEqual(expect.arrayContaining([expect.stringMatching(/^task-\d+$/)]));
   });
 });
 
@@ -213,7 +211,7 @@ describe('Integration Readiness', () => {
   test('should have required Node.js version', () => {
     const nodeVersion = process.version;
     const majorVersion = parseInt(nodeVersion.slice(1).split('.')[0]);
-    
+
     expect(majorVersion).toBeGreaterThanOrEqual(18);
   });
 
@@ -305,7 +303,7 @@ describe('Mock Server Responses', () => {
     };
 
     const parsedContent = JSON.parse(mockResponse.content[0].text);
-    
+
     expect(parsedContent.users).toHaveLength(2);
     expect(parsedContent.users[0].name).toBe('Alice');
     expect(parsedContent.pagination.total).toBe(2);
@@ -325,7 +323,7 @@ describe('Environment Configuration', () => {
 
   test('should handle environment variables', () => {
     process.env.TEST_VAR = 'test_value';
-    
+
     expect(process.env.TEST_VAR).toBe('test_value');
     expect(process.env.NONEXISTENT_VAR).toBeUndefined();
   });
@@ -334,11 +332,11 @@ describe('Environment Configuration', () => {
     // Test NODE_ENV detection
     process.env.NODE_ENV = 'test';
     expect(process.env.NODE_ENV).toBe('test');
-    
+
     const isDevelopment = process.env.NODE_ENV === 'development';
     const isProduction = process.env.NODE_ENV === 'production';
     const isTest = process.env.NODE_ENV === 'test';
-    
+
     expect(isDevelopment).toBe(false);
     expect(isProduction).toBe(false);
     expect(isTest).toBe(true);
@@ -352,7 +350,7 @@ describe('Environment Configuration', () => {
 describe('Resource Management', () => {
   test('should manage memory efficiently', () => {
     const initialMemory = process.memoryUsage();
-    
+
     // Create some data
     const largeArray = Array.from({ length: 10000 }, (_, i) => ({
       id: i,
@@ -361,18 +359,18 @@ describe('Resource Management', () => {
     }));
 
     expect(largeArray).toHaveLength(10000);
-    
+
     // Memory should not be excessive
     const currentMemory = process.memoryUsage();
     const heapDiff = currentMemory.heapUsed - initialMemory.heapUsed;
-    
+
     // Should use less than 50MB for this test data
     expect(heapDiff).toBeLessThan(50 * 1024 * 1024);
   });
 
   test('should handle cleanup properly', () => {
     let cleanupCalled = false;
-    
+
     const mockCleanup = () => {
       cleanupCalled = true;
     };
@@ -380,7 +378,7 @@ describe('Resource Management', () => {
     // Simulate resource allocation and cleanup
     const resource = { cleanup: mockCleanup };
     resource.cleanup();
-    
+
     expect(cleanupCalled).toBe(true);
   });
 });
@@ -399,15 +397,15 @@ describe('System Information', () => {
 
   test('should track timing accurately', () => {
     const start = process.hrtime.bigint();
-    
+
     // Small delay to ensure measurable time difference
     for (let i = 0; i < 1000; i++) {
       Math.random();
     }
-    
+
     const end = process.hrtime.bigint();
     const duration = Number(end - start) / 1000000; // Convert to milliseconds
-    
+
     expect(duration).toBeGreaterThan(0);
     expect(duration).toBeLessThan(100); // Should be very fast
   });

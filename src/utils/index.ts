@@ -1,10 +1,10 @@
 /**
  * @fileoverview Core Utilities Index
- * 
+ *
  * Central export point for all utility functions used throughout the
  * MCP boilerplate TypeScript ecosystem. This module re-exports utilities
  * for configuration, logging, metrics, and common helper functions.
- * 
+ *
  * @author MCP Boilerplate Team
  * @version 0.3.0
  */
@@ -96,7 +96,6 @@ export {
   type MetricValue,
   type MetricStats,
   type PerformanceSnapshot,
-
 } from './metrics.js';
 
 // =============================================================================
@@ -105,7 +104,7 @@ export {
 
 /**
  * Sleep for specified milliseconds
- * 
+ *
  * @param ms - Milliseconds to sleep
  * @returns Promise that resolves after delay
  */
@@ -115,7 +114,7 @@ export function sleep(ms: number): Promise<void> {
 
 /**
  * Generate unique ID with optional prefix
- * 
+ *
  * @param prefix - Optional prefix for the ID
  * @returns Unique identifier string
  */
@@ -123,13 +122,13 @@ export function generateId(prefix?: string): string {
   const timestamp = Date.now().toString(36);
   const random = Math.random().toString(36).substring(2, 8);
   const id = `${timestamp}${random}`;
-  
+
   return prefix ? `${prefix}_${id}` : id;
 }
 
 /**
  * Create a timeout promise that rejects after specified time
- * 
+ *
  * @param ms - Timeout in milliseconds
  * @param message - Error message for timeout
  * @returns Promise that rejects on timeout
@@ -142,7 +141,7 @@ export function timeout(ms: number, message = 'Operation timeout'): Promise<neve
 
 /**
  * Retry a function with exponential backoff
- * 
+ *
  * @param fn - Function to retry
  * @param maxAttempts - Maximum number of attempts
  * @param initialDelay - Initial delay in milliseconds
@@ -154,29 +153,29 @@ export async function retry<T>(
   initialDelay: number = 1000
 ): Promise<T> {
   let lastError: Error;
-  
+
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       return await fn();
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
-      
+
       if (attempt === maxAttempts) {
         throw lastError;
       }
-      
+
       // Exponential backoff
       const delay = initialDelay * Math.pow(2, attempt - 1);
       await sleep(delay);
     }
   }
-  
+
   throw lastError!;
 }
 
 /**
  * Deep clone an object using JSON serialization
- * 
+ *
  * @param obj - Object to clone
  * @returns Deep cloned object
  */
@@ -186,7 +185,7 @@ export function deepClone<T>(obj: T): T {
 
 /**
  * Check if a value is a plain object
- * 
+ *
  * @param value - Value to check
  * @returns True if value is a plain object
  */
@@ -201,14 +200,14 @@ export function isPlainObject(value: unknown): value is Record<string, unknown> 
 
 /**
  * Merge objects deeply
- * 
+ *
  * @param target - Target object
  * @param sources - Source objects to merge
  * @returns Merged object
  */
 export function deepMerge<T extends Record<string, any>>(target: T, ...sources: Partial<T>[]): T {
   const result = { ...target } as T;
-  
+
   for (const source of sources) {
     for (const [key, value] of Object.entries(source)) {
       if (isPlainObject(value) && isPlainObject((result as any)[key])) {
@@ -218,13 +217,13 @@ export function deepMerge<T extends Record<string, any>>(target: T, ...sources: 
       }
     }
   }
-  
+
   return result;
 }
 
 /**
  * Sanitize object for logging (remove sensitive fields)
- * 
+ *
  * @param obj - Object to sanitize
  * @param sensitiveKeys - Keys to redact (default: common sensitive keys)
  * @returns Sanitized object
@@ -234,11 +233,11 @@ export function sanitizeForLogging(
   sensitiveKeys: string[] = ['password', 'secret', 'token', 'key', 'auth']
 ): Record<string, unknown> {
   const sanitized: Record<string, unknown> = {};
-  
+
   for (const [key, value] of Object.entries(obj)) {
     const lowerKey = key.toLowerCase();
     const isSensitive = sensitiveKeys.some(sensitive => lowerKey.includes(sensitive));
-    
+
     if (isSensitive) {
       sanitized[key] = '[REDACTED]';
     } else if (isPlainObject(value)) {
@@ -247,32 +246,32 @@ export function sanitizeForLogging(
       sanitized[key] = value;
     }
   }
-  
+
   return sanitized;
 }
 
 /**
  * Format bytes to human readable string
- * 
+ *
  * @param bytes - Number of bytes
  * @param decimals - Number of decimal places
  * @returns Formatted string
  */
 export function formatBytes(bytes: number, decimals: number = 2): string {
   if (bytes === 0) return '0 Bytes';
-  
+
   const k = 1024;
   const dm = decimals < 0 ? 0 : decimals;
   const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-  
+
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
+
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }
 
 /**
  * Format duration to human readable string
- * 
+ *
  * @param ms - Duration in milliseconds
  * @returns Formatted duration string
  */
@@ -285,7 +284,7 @@ export function formatDuration(ms: number): string {
 
 /**
  * Check if string is valid JSON
- * 
+ *
  * @param str - String to validate
  * @returns True if valid JSON
  */
@@ -300,7 +299,7 @@ export function isValidJson(str: string): boolean {
 
 /**
  * Parse JSON safely with fallback
- * 
+ *
  * @param str - JSON string to parse
  * @param fallback - Fallback value if parsing fails
  * @returns Parsed object or fallback
@@ -315,7 +314,7 @@ export function parseJsonSafe<T>(str: string, fallback: T): T {
 
 /**
  * Debounce function execution
- * 
+ *
  * @param fn - Function to debounce
  * @param delay - Delay in milliseconds
  * @returns Debounced function
@@ -325,7 +324,7 @@ export function debounce<T extends (...args: any[]) => any>(
   delay: number
 ): (...args: Parameters<T>) => void {
   let timeoutId: NodeJS.Timeout;
-  
+
   return (...args: Parameters<T>) => {
     clearTimeout(timeoutId);
     timeoutId = setTimeout(() => fn(...args), delay);
@@ -334,7 +333,7 @@ export function debounce<T extends (...args: any[]) => any>(
 
 /**
  * Throttle function execution
- * 
+ *
  * @param fn - Function to throttle
  * @param delay - Delay in milliseconds
  * @returns Throttled function
@@ -344,7 +343,7 @@ export function throttle<T extends (...args: any[]) => any>(
   delay: number
 ): (...args: Parameters<T>) => void {
   let lastCall = 0;
-  
+
   return (...args: Parameters<T>) => {
     const now = Date.now();
     if (now - lastCall >= delay) {
@@ -356,7 +355,7 @@ export function throttle<T extends (...args: any[]) => any>(
 
 /**
  * Create a circuit breaker for function calls
- * 
+ *
  * @param fn - Function to protect
  * @param options - Circuit breaker options
  * @returns Circuit breaker wrapped function
@@ -369,39 +368,35 @@ export function createCircuitBreaker<T extends (...args: any[]) => Promise<any>>
     monitoringPeriod?: number;
   } = {}
 ): T {
-  const {
-    failureThreshold = 5,
-    resetTimeout = 60000,
-    monitoringPeriod = 10000,
-  } = options;
-  
+  const { failureThreshold = 5, resetTimeout = 60000, monitoringPeriod = 10000 } = options;
+
   let state: 'closed' | 'open' | 'half-open' = 'closed';
   let failureCount = 0;
   let lastFailureTime = 0;
   let successCount = 0;
-  
+
   return (async (...args: Parameters<T>): Promise<ReturnType<T>> => {
     const now = Date.now();
-    
+
     // Reset failure count after monitoring period
     if (now - lastFailureTime > monitoringPeriod) {
       failureCount = 0;
     }
-    
+
     // Check if circuit should be closed again
     if (state === 'open' && now - lastFailureTime > resetTimeout) {
       state = 'half-open';
       successCount = 0;
     }
-    
+
     // Reject if circuit is open
     if (state === 'open') {
       throw new Error('Circuit breaker is open');
     }
-    
+
     try {
       const result = await fn(...args);
-      
+
       // Success in half-open state
       if (state === 'half-open') {
         successCount++;
@@ -410,17 +405,17 @@ export function createCircuitBreaker<T extends (...args: any[]) => Promise<any>>
           failureCount = 0;
         }
       }
-      
+
       return result;
     } catch (error) {
       failureCount++;
       lastFailureTime = now;
-      
+
       // Open circuit if failure threshold reached
       if (failureCount >= failureThreshold) {
         state = 'open';
       }
-      
+
       throw error;
     }
   }) as T;
@@ -428,7 +423,7 @@ export function createCircuitBreaker<T extends (...args: any[]) => Promise<any>>
 
 /**
  * Validate environment variable presence
- * 
+ *
  * @param name - Environment variable name
  * @param defaultValue - Optional default value
  * @returns Environment variable value
@@ -436,32 +431,35 @@ export function createCircuitBreaker<T extends (...args: any[]) => Promise<any>>
  */
 export function requireEnv(name: string, defaultValue?: string): string {
   const value = process.env[name] || defaultValue;
-  
+
   if (!value) {
     throw new Error(`Required environment variable ${name} is not set`);
   }
-  
+
   return value;
 }
 
 /**
  * Get environment variable as array (comma-separated)
- * 
+ *
  * @param name - Environment variable name
  * @param defaultValue - Default array value
  * @returns Array of strings
  */
 export function getEnvArray(name: string, defaultValue: string[] = []): string[] {
   const value = process.env[name];
-  
+
   if (!value) return defaultValue;
-  
-  return value.split(',').map(item => item.trim()).filter(Boolean);
+
+  return value
+    .split(',')
+    .map(item => item.trim())
+    .filter(Boolean);
 }
 
 /**
  * Create a promise that resolves after all provided promises settle
- * 
+ *
  * @param promises - Array of promises
  * @returns Promise with all results
  */
@@ -473,19 +471,20 @@ export async function allSettledTyped<T>(
 
 /**
  * Convert callback-style function to promise
- * 
+ *
  * @param fn - Callback function
  * @returns Promisified function
  */
 export function promisify<T>(
   fn: (callback: (error: Error | null, result?: T) => void) => void
 ): () => Promise<T> {
-  return () => new Promise<T>((resolve, reject) => {
-    fn((error, result) => {
-      if (error) reject(error);
-      else resolve(result!);
+  return () =>
+    new Promise<T>((resolve, reject) => {
+      fn((error, result) => {
+        if (error) reject(error);
+        else resolve(result!);
+      });
     });
-  });
 }
 
 // Re-export common types for convenience
@@ -497,5 +496,4 @@ export type {
   PerformanceConfig,
   MetricDataPoint,
   TimeSeriesMetric,
-
 } from '../types/index.js';

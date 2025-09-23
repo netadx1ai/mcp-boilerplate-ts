@@ -18,10 +18,10 @@
  */
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
+import { CallToolRequestSchema, ListToolsRequestSchema, } from '@modelcontextprotocol/sdk/types.js';
 import { BaseMcpServer } from '../core/server.js';
 import { HttpTransport } from './http.js';
-import { ToolExecutionError } from '../types/index.js';
+import { ToolExecutionError, } from '../types/index.js';
 /**
  * Default HTTP MCP Server configuration
  */
@@ -37,33 +37,33 @@ const DEFAULT_HTTP_SERVER_CONFIG = {
             origins: ['*'],
             methods: ['GET', 'POST', 'OPTIONS'],
             allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
-            credentials: false
+            credentials: false,
         },
         auth: {
             enabled: false,
             type: 'apikey',
-            headerName: 'X-API-Key'
+            headerName: 'X-API-Key',
         },
         rateLimit: {
             enabled: true,
             windowMs: 15 * 60 * 1000,
             maxRequests: 100,
-            message: 'Too many requests from this IP'
+            message: 'Too many requests from this IP',
         },
         security: {
             helmet: true,
             trustProxy: false,
             requestSizeLimit: '10mb',
-            timeout: 30000
+            timeout: 30000,
         },
         swagger: {
             enabled: true,
             path: '/docs',
             title: 'MCP Server API',
             description: 'Model Context Protocol REST API',
-            version: '1.0.0'
-        }
-    }
+            version: '1.0.0',
+        },
+    },
 };
 /**
  * HTTP-enabled MCP Server extending BaseMcpServer
@@ -89,8 +89,8 @@ export class HttpMcpServer extends BaseMcpServer {
             ...config,
             http: {
                 ...DEFAULT_HTTP_SERVER_CONFIG.http,
-                ...config.http
-            }
+                ...config.http,
+            },
         };
         super(mergedConfig);
         this._httpConfig = mergedConfig;
@@ -99,7 +99,7 @@ export class HttpMcpServer extends BaseMcpServer {
             version: this._httpConfig.version,
             httpPort: this._httpConfig.http.port,
             enableStdio: this._httpConfig.enableStdio,
-            primaryTransport: this._httpConfig.primaryTransport
+            primaryTransport: this._httpConfig.primaryTransport,
         });
     }
     /**
@@ -144,11 +144,11 @@ export class HttpMcpServer extends BaseMcpServer {
             this.logger.info('HTTP MCP server started successfully', {
                 httpPort: this._httpConfig.http.port,
                 stdioEnabled: this._httpConfig.enableStdio,
-                toolCount: this.stats.tools.registered
+                toolCount: this.stats.tools.registered,
             });
             this.emit('server:started', {
                 timestamp: this.startTime.toISOString(),
-                transports: this._getActiveTransports()
+                transports: this._getActiveTransports(),
             });
         }
         catch (error) {
@@ -179,7 +179,7 @@ export class HttpMcpServer extends BaseMcpServer {
             this.startTime = undefined;
             this.logger.info('HTTP MCP server stopped');
             this.emit('server:stopped', {
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
             });
         }
         catch (error) {
@@ -215,21 +215,23 @@ export class HttpMcpServer extends BaseMcpServer {
                     port: this._httpConfig.http.port,
                     host: this._httpConfig.http.host,
                     basePath: this._httpConfig.http.basePath,
-                    sessionId: this._httpTransport?.sessionId
+                    sessionId: this._httpTransport?.sessionId,
                 },
                 stdio: {
-                    enabled: this._httpConfig.enableStdio && !!this._stdioTransport
-                }
+                    enabled: this._httpConfig.enableStdio && !!this._stdioTransport,
+                },
             },
-            endpoints: this._httpTransport ? {
-                health: `http://${this._httpConfig.http.host}:${this._httpConfig.http.port}${this._httpConfig.http.basePath}/health`,
-                info: `http://${this._httpConfig.http.host}:${this._httpConfig.http.port}${this._httpConfig.http.basePath}/info`,
-                rpc: `http://${this._httpConfig.http.host}:${this._httpConfig.http.port}${this._httpConfig.http.basePath}/rpc`,
-                tools: `http://${this._httpConfig.http.host}:${this._httpConfig.http.port}${this._httpConfig.http.basePath}/tools`,
-                docs: this._httpConfig.http.swagger?.enabled ?
-                    `http://${this._httpConfig.http.host}:${this._httpConfig.http.port}${this._httpConfig.http.swagger.path}` :
-                    undefined
-            } : undefined
+            endpoints: this._httpTransport
+                ? {
+                    health: `http://${this._httpConfig.http.host}:${this._httpConfig.http.port}${this._httpConfig.http.basePath}/health`,
+                    info: `http://${this._httpConfig.http.host}:${this._httpConfig.http.port}${this._httpConfig.http.basePath}/info`,
+                    rpc: `http://${this._httpConfig.http.host}:${this._httpConfig.http.port}${this._httpConfig.http.basePath}/rpc`,
+                    tools: `http://${this._httpConfig.http.host}:${this._httpConfig.http.port}${this._httpConfig.http.basePath}/tools`,
+                    docs: this._httpConfig.http.swagger?.enabled
+                        ? `http://${this._httpConfig.http.host}:${this._httpConfig.http.port}${this._httpConfig.http.swagger.path}`
+                        : undefined,
+                }
+                : undefined,
         };
     }
     /**
@@ -245,29 +247,29 @@ export class HttpMcpServer extends BaseMcpServer {
             catch (error) {
                 this.logger.error('HTTP message handling error', {
                     error: error instanceof Error ? error.message : String(error),
-                    messageId: message.id
+                    messageId: message.id,
                 });
             }
         };
-        this._httpTransport.onerror = (error) => {
+        this._httpTransport.onerror = error => {
             this.logger.error('HTTP transport error', { error: error.message });
             this.emit('transport:error', {
                 transport: 'http',
                 error: error.message,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
             });
         };
         this._httpTransport.onclose = () => {
             this.logger.info('HTTP transport closed');
             this.emit('transport:closed', {
                 transport: 'http',
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
             });
         };
         await this._httpTransport.start();
         this.logger.info('HTTP transport started', {
             port: this._httpConfig.http.port,
-            host: this._httpConfig.http.host
+            host: this._httpConfig.http.host,
         });
     }
     /**
@@ -293,7 +295,7 @@ export class HttpMcpServer extends BaseMcpServer {
             const tools = Array.from(this.tools.values()).map(tool => ({
                 name: tool.name,
                 description: tool.description,
-                inputSchema: tool.parameters
+                inputSchema: tool.parameters,
             }));
             return { tools };
         });
@@ -321,12 +323,12 @@ export class HttpMcpServer extends BaseMcpServer {
                         const tools = Array.from(this.tools.values()).map(tool => ({
                             name: tool.name,
                             description: tool.description,
-                            inputSchema: tool.parameters
+                            inputSchema: tool.parameters,
                         }));
                         response = {
                             jsonrpc: '2.0',
                             result: { tools },
-                            id: request.id
+                            id: request.id,
                         };
                         break;
                     case 'tools/call':
@@ -335,7 +337,7 @@ export class HttpMcpServer extends BaseMcpServer {
                         response = {
                             jsonrpc: '2.0',
                             result,
-                            id: request.id
+                            id: request.id,
                         };
                         break;
                     default:
@@ -343,21 +345,21 @@ export class HttpMcpServer extends BaseMcpServer {
                             jsonrpc: '2.0',
                             error: {
                                 code: -32601,
-                                message: 'Method not found'
+                                message: 'Method not found',
                             },
-                            id: request.id
+                            id: request.id,
                         };
                 }
                 // Send response (this would be handled by the HTTP transport response mechanism)
                 this.logger.debug('JSON-RPC response prepared', {
                     method: request.method,
-                    id: request.id
+                    id: request.id,
                 });
             }
             catch (error) {
                 this.logger.error('JSON-RPC request handling error', {
                     method: request.method,
-                    error: error instanceof Error ? error.message : String(error)
+                    error: error instanceof Error ? error.message : String(error),
                 });
             }
         }
@@ -379,18 +381,18 @@ export class HttpMcpServer extends BaseMcpServer {
             this.logger.info('Tool executed successfully via HTTP', {
                 name,
                 success: result.success,
-                executionTime
+                executionTime,
             });
             this.emit('tool:executed', {
                 name,
                 success: result.success,
                 executionTime,
                 transport: 'http',
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
             });
             return {
                 content: result.success ? result.data : result.error,
-                isError: !result.success
+                isError: !result.success,
             };
         }
         catch (error) {
@@ -398,13 +400,13 @@ export class HttpMcpServer extends BaseMcpServer {
             this.lastError = error instanceof Error ? error.message : String(error);
             this.logger.error('Tool execution failed via HTTP', {
                 name,
-                error: this.lastError
+                error: this.lastError,
             });
             this.emit('tool:error', {
                 name,
                 error: this.lastError,
                 transport: 'http',
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
             });
             throw new ToolExecutionError(`Tool execution failed: ${this.lastError}`);
         }
@@ -488,35 +490,35 @@ export class HttpMcpServerFactory {
                     origins: ['*'],
                     methods: ['GET', 'POST', 'OPTIONS'],
                     allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
-                    credentials: false
+                    credentials: false,
                 },
                 rateLimit: {
                     enabled: true,
                     windowMs: 900000,
                     maxRequests: 100,
-                    message: 'Too many requests'
+                    message: 'Too many requests',
                 },
                 security: {
                     helmet: true,
                     trustProxy: false,
                     requestSizeLimit: '10mb',
-                    timeout: 30000
+                    timeout: 30000,
                 },
                 swagger: {
                     enabled: true,
                     path: '/docs',
                     title: 'MCP Server API',
                     description: 'Model Context Protocol REST API',
-                    version: '1.0.0'
+                    version: '1.0.0',
                 },
                 ...config.http,
                 auth: {
                     enabled: true,
                     type: 'apikey',
                     apiKeys,
-                    headerName: 'X-API-Key'
-                }
-            }
+                    headerName: 'X-API-Key',
+                },
+            },
         });
     }
     /**
@@ -538,35 +540,35 @@ export class HttpMcpServerFactory {
                     origins: [],
                     methods: ['POST'],
                     allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
-                    credentials: false
+                    credentials: false,
                 },
                 rateLimit: {
                     enabled: true,
                     windowMs: 15 * 60 * 1000,
                     maxRequests: 100,
-                    message: 'Too many requests'
+                    message: 'Too many requests',
                 },
                 security: {
                     helmet: true,
                     trustProxy: true,
                     requestSizeLimit: '1mb',
-                    timeout: 10000
+                    timeout: 10000,
                 },
                 swagger: {
                     enabled: false,
                     path: '/docs',
                     title: 'MCP Production API',
                     description: 'Model Context Protocol Production Server',
-                    version: '1.0.0'
+                    version: '1.0.0',
                 },
                 ...config.http,
                 auth: {
                     enabled: true,
                     type: 'apikey',
                     apiKeys: process.env.MCP_API_KEYS?.split(',') || [],
-                    headerName: 'X-API-Key'
-                }
-            }
+                    headerName: 'X-API-Key',
+                },
+            },
         });
     }
     /**
@@ -588,34 +590,34 @@ export class HttpMcpServerFactory {
                     origins: ['*'],
                     methods: ['GET', 'POST', 'OPTIONS'],
                     allowedHeaders: ['Content-Type', 'Authorization'],
-                    credentials: false
+                    credentials: false,
                 },
                 rateLimit: {
                     enabled: false,
                     windowMs: 900000,
                     maxRequests: 1000,
-                    message: 'Too many requests'
+                    message: 'Too many requests',
                 },
                 security: {
                     helmet: false,
                     trustProxy: false,
                     requestSizeLimit: '10mb',
-                    timeout: 30000
+                    timeout: 30000,
                 },
                 swagger: {
                     enabled: true,
                     path: '/docs',
                     title: 'MCP Development Server',
                     description: 'Model Context Protocol Development API',
-                    version: '1.0.0'
+                    version: '1.0.0',
                 },
                 ...config.http,
                 auth: {
                     enabled: false,
                     type: 'apikey',
-                    headerName: 'X-API-Key'
-                }
-            }
+                    headerName: 'X-API-Key',
+                },
+            },
         });
     }
 }

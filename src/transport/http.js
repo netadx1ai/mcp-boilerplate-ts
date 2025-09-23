@@ -37,32 +37,32 @@ const DEFAULT_HTTP_CONFIG = {
         origins: ['*'],
         methods: ['GET', 'POST', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
-        credentials: false
+        credentials: false,
     },
     auth: {
         enabled: false,
         type: 'apikey',
-        headerName: 'X-API-Key'
+        headerName: 'X-API-Key',
     },
     rateLimit: {
         enabled: true,
         windowMs: 15 * 60 * 1000, // 15 minutes
         maxRequests: 100,
-        message: 'Too many requests from this IP'
+        message: 'Too many requests from this IP',
     },
     security: {
         helmet: true,
         trustProxy: false,
         requestSizeLimit: '10mb',
-        timeout: 30000
+        timeout: 30000,
     },
     swagger: {
         enabled: true,
         path: '/docs',
         title: 'MCP Server API',
         description: 'Model Context Protocol REST API',
-        version: '1.0.0'
-    }
+        version: '1.0.0',
+    },
 };
 /**
  * HTTP Transport implementation for MCP protocol
@@ -114,11 +114,11 @@ export class HttpTransport {
                         host: this._config.host,
                         port: this._config.port,
                         basePath: this._config.basePath,
-                        sessionId: this._sessionId
+                        sessionId: this._sessionId,
                     });
                     resolve();
                 });
-                this._server.on('error', (error) => {
+                this._server.on('error', error => {
                     this._logger.error('HTTP server error', { error: error.message });
                     this.onerror?.(error);
                     reject(error);
@@ -144,7 +144,7 @@ export class HttpTransport {
         if (!this._isStarted || !this._server) {
             return;
         }
-        return new Promise((resolve) => {
+        return new Promise(resolve => {
             this._server.close(() => {
                 this._isStarted = false;
                 this._logger.info('HTTP transport closed');
@@ -171,7 +171,7 @@ export class HttpTransport {
                 origin: this._config.cors.origins,
                 methods: this._config.cors.methods,
                 allowedHeaders: this._config.cors.allowedHeaders,
-                credentials: this._config.cors.credentials
+                credentials: this._config.cors.credentials,
             }));
         }
         // Rate limiting
@@ -182,24 +182,24 @@ export class HttpTransport {
                 message: { error: this._config.rateLimit.message },
                 standardHeaders: true,
                 legacyHeaders: false,
-                skip: (req) => {
+                skip: req => {
                     if (this._config.rateLimit?.skipSuccessfulRequests &&
                         req.method === 'GET' &&
                         req.path.endsWith('/health')) {
                         return true;
                     }
                     return false;
-                }
+                },
             });
             this._app.use(limiter);
         }
         // Body parsing middleware
         this._app.use(express.json({
-            limit: this._config.security.requestSizeLimit
+            limit: this._config.security.requestSizeLimit,
         }));
         this._app.use(express.urlencoded({
             extended: true,
-            limit: this._config.security.requestSizeLimit
+            limit: this._config.security.requestSizeLimit,
         }));
         // Request context middleware
         this._app.use(this._createRequestContext.bind(this));
@@ -239,30 +239,32 @@ export class HttpTransport {
                     title: this._config.swagger.title,
                     description: this._config.swagger.description,
                     version: this._config.swagger.version,
-                    contact: this._config.swagger.contact
+                    contact: this._config.swagger.contact,
                 },
                 servers: [
                     {
                         url: `http://${this._config.host}:${this._config.port}${this._config.basePath}`,
-                        description: 'Development server'
-                    }
+                        description: 'Development server',
+                    },
                 ],
                 components: {
-                    securitySchemes: this._config.auth?.enabled ? {
-                        ApiKeyAuth: {
-                            type: 'apiKey',
-                            in: 'header',
-                            name: this._config.auth.headerName || 'X-API-Key'
+                    securitySchemes: this._config.auth?.enabled
+                        ? {
+                            ApiKeyAuth: {
+                                type: 'apiKey',
+                                in: 'header',
+                                name: this._config.auth.headerName || 'X-API-Key',
+                            },
                         }
-                    } : undefined
-                }
+                        : undefined,
+                },
             },
-            apis: [__filename] // This file contains JSDoc comments for API docs
+            apis: [__filename], // This file contains JSDoc comments for API docs
         };
         const specs = swaggerJsdoc(swaggerOptions);
         this._app.use(this._config.swagger.path, swaggerUi.serve, swaggerUi.setup(specs, {
             explorer: true,
-            customCss: '.swagger-ui .topbar { display: none }'
+            customCss: '.swagger-ui .topbar { display: none }',
         }));
     }
     /**
@@ -274,7 +276,7 @@ export class HttpTransport {
             res.status(404).json({
                 error: 'Not Found',
                 message: `Endpoint ${req.method} ${req.originalUrl} not found`,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
             });
         });
         // Global error handler
@@ -284,7 +286,7 @@ export class HttpTransport {
                 stack: error.stack,
                 requestId: req.context?.requestId,
                 method: req.method,
-                url: req.originalUrl
+                url: req.originalUrl,
             });
             const statusCode = error.statusCode || 500;
             const message = error.message || 'Internal Server Error';
@@ -292,7 +294,7 @@ export class HttpTransport {
                 error: 'Internal Server Error',
                 message,
                 requestId: req.context?.requestId,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
             });
         });
     }
@@ -309,7 +311,7 @@ export class HttpTransport {
             query: req.query,
             body: req.body,
             requestId,
-            timestamp
+            timestamp,
         };
         // Add correlation ID header to response
         res.setHeader('X-Request-ID', requestId);
@@ -329,7 +331,7 @@ export class HttpTransport {
             res.status(401).json({
                 error: 'Unauthorized',
                 message: 'Missing authentication header',
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
             });
             return;
         }
@@ -359,12 +361,12 @@ export class HttpTransport {
         catch (error) {
             this._logger.warn('Authentication failed', {
                 error: error instanceof Error ? error.message : String(error),
-                requestId: req.context?.requestId
+                requestId: req.context?.requestId,
             });
             res.status(401).json({
                 error: 'Unauthorized',
                 message: 'Authentication failed',
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
             });
         }
     }
@@ -386,7 +388,7 @@ export class HttpTransport {
             sessionId: this._sessionId,
             uptime: process.uptime(),
             memory: process.memoryUsage(),
-            version: process.version
+            version: process.version,
         };
         res.json(health);
     }
@@ -414,8 +416,8 @@ export class HttpTransport {
                 info: `${this._config.basePath}/info`,
                 rpc: `${this._config.basePath}/rpc`,
                 tools: `${this._config.basePath}/tools`,
-                docs: this._config.swagger?.enabled ? this._config.swagger.path : undefined
-            }
+                docs: this._config.swagger?.enabled ? this._config.swagger.path : undefined,
+            },
         };
         res.json(info);
     }
@@ -444,39 +446,38 @@ export class HttpTransport {
                     jsonrpc: '2.0',
                     error: {
                         code: -32600,
-                        message: 'Invalid Request'
+                        message: 'Invalid Request',
                     },
-                    id: null
+                    id: null,
                 });
                 return;
             }
             // Forward to MCP message handler
             this.onmessage?.(message, {
-                sessionId: this._sessionId,
                 requestInfo: {
-                    headers: req.headers
-                }
+                    headers: req.headers,
+                },
             });
             // For HTTP transport, we handle the response through Express
             // The actual response is sent by the MCP server through a different mechanism
             res.status(202).json({
                 jsonrpc: '2.0',
                 result: { accepted: true },
-                id: message.id
+                id: message.id,
             });
         }
         catch (error) {
             this._logger.error('JSON-RPC handling error', {
                 error: error instanceof Error ? error.message : String(error),
-                requestId: req.context?.requestId
+                requestId: req.context?.requestId,
             });
             res.status(500).json({
                 jsonrpc: '2.0',
                 error: {
                     code: -32603,
-                    message: 'Internal error'
+                    message: 'Internal error',
                 },
-                id: req.body?.id || null
+                id: req.body?.id || null,
             });
         }
     }
@@ -498,12 +499,12 @@ export class HttpTransport {
             category: tool.category,
             version: tool.version,
             parameters: {},
-            examples: tool.examples
+            examples: tool.examples,
         }));
         res.json({
             tools,
             count: tools.length,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
         });
     }
     /**
@@ -538,7 +539,7 @@ export class HttpTransport {
                     error: 'Tool Not Found',
                     message: `Tool '${toolName}' is not available`,
                     availableTools: Array.from(this._tools.keys()),
-                    timestamp: new Date().toISOString()
+                    timestamp: new Date().toISOString(),
                 });
                 return;
             }
@@ -549,28 +550,26 @@ export class HttpTransport {
                 statusCode: result.success ? 200 : 400,
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-Execution-Time': `${executionTime}ms`
+                    'X-Execution-Time': `${executionTime}ms`,
                 },
                 body: result,
                 metadata: {
                     requestId: req.context.requestId,
-                    executionTime
-                }
+                    executionTime,
+                },
             };
-            res.status(response.statusCode)
-                .set(response.headers)
-                .json(response.body);
+            res.status(response.statusCode).set(response.headers).json(response.body);
         }
         catch (error) {
             this._logger.error('Tool execution error', {
                 error: error instanceof Error ? error.message : String(error),
                 tool: req.params.name,
-                requestId: req.context?.requestId
+                requestId: req.context?.requestId,
             });
             res.status(500).json({
                 error: 'Tool Execution Failed',
                 message: error instanceof Error ? error.message : 'Unknown error',
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
             });
         }
     }
@@ -597,8 +596,8 @@ export class HttpTransportFactory {
                 apiKeys: authConfig.apiKeys,
                 jwtSecret: authConfig.jwtSecret,
                 jwtExpiration: authConfig.jwtExpiration,
-                headerName: authConfig.headerName
-            }
+                headerName: authConfig.headerName,
+            },
         });
     }
     static createSecure(config = {}) {
@@ -608,19 +607,19 @@ export class HttpTransportFactory {
                 helmet: true,
                 trustProxy: true,
                 requestSizeLimit: '1mb',
-                timeout: 10000
+                timeout: 10000,
             },
             auth: {
                 enabled: true,
                 type: 'apikey',
-                headerName: 'X-API-Key'
+                headerName: 'X-API-Key',
             },
             rateLimit: {
                 enabled: true,
                 windowMs: 900000,
                 maxRequests: 100,
-                message: 'Too many requests'
-            }
+                message: 'Too many requests',
+            },
         });
     }
 }

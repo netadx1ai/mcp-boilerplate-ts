@@ -2,18 +2,18 @@
 
 /**
  * @fileoverview News Data Server - Production MCP Server for News Data
- * 
+ *
  * A production-ready MCP server that provides comprehensive news data functionality
  * using the official TypeScript SDK. This server demonstrates real-world MCP server
  * implementation with 5 specialized news tools.
- * 
+ *
  * Features:
  * - Official @modelcontextprotocol/sdk integration
  * - 5 news tools: search, category, trending, status, categories
  * - Mock news data with realistic structure
  * - Production error handling and logging
  * - Statistics tracking and performance monitoring
- * 
+ *
  * @author MCP Boilerplate Team
  * @version 1.0.0
  */
@@ -53,7 +53,7 @@ const serverStats: ServerStats = {
   totalRequests: 0,
   toolUsage: {},
   startTime: new Date().toISOString(),
-  uptime: 0
+  uptime: 0,
 };
 
 // =============================================================================
@@ -81,7 +81,7 @@ function generateMockArticles(query: string, category?: string, limit: number = 
       source: 'Global News Network',
       publishedAt: new Date(Date.now() - Math.random() * 86400000).toISOString(),
       category: category || 'general',
-      language: 'en'
+      language: 'en',
     },
     {
       title: `${query}: Market Impact and Analysis`,
@@ -90,7 +90,7 @@ function generateMockArticles(query: string, category?: string, limit: number = 
       source: 'Financial Times',
       publishedAt: new Date(Date.now() - Math.random() * 172800000).toISOString(),
       category: 'business',
-      language: 'en'
+      language: 'en',
     },
     {
       title: `Expert Opinion: ${query} Trends`,
@@ -99,32 +99,51 @@ function generateMockArticles(query: string, category?: string, limit: number = 
       source: 'Expert Analysis',
       publishedAt: new Date(Date.now() - Math.random() * 259200000).toISOString(),
       category: category || 'analysis',
-      language: 'en'
-    }
+      language: 'en',
+    },
   ];
 
   // Generate additional articles up to the limit
   while (mockArticles.length < limit && mockArticles.length < 50) {
     const variations = [
-      'Update', 'Report', 'Investigation', 'Study', 'Research', 'Interview',
-      'Analysis', 'Commentary', 'Review', 'Survey', 'Poll', 'Data'
+      'Update',
+      'Report',
+      'Investigation',
+      'Study',
+      'Research',
+      'Interview',
+      'Analysis',
+      'Commentary',
+      'Review',
+      'Survey',
+      'Poll',
+      'Data',
     ];
     const sources = [
-      'Reuters', 'Associated Press', 'BBC News', 'CNN', 'Fox News',
-      'The Guardian', 'Wall Street Journal', 'New York Times', 'Washington Post'
+      'Reuters',
+      'Associated Press',
+      'BBC News',
+      'CNN',
+      'Fox News',
+      'The Guardian',
+      'Wall Street Journal',
+      'New York Times',
+      'Washington Post',
     ];
-    
+
     const variation = variations[Math.floor(Math.random() * variations.length)];
     const source = sources[Math.floor(Math.random() * sources.length)];
-    
+
     mockArticles.push({
       title: `${variation}: ${query} Continues to Impact Industry`,
       description: `Detailed ${variation.toLowerCase()} on how ${query} is shaping current events.`,
       url: `https://news.example.com/${variation.toLowerCase()}/${Date.now()}`,
       source: source,
       publishedAt: new Date(Date.now() - Math.random() * 604800000).toISOString(),
-      category: category || ['general', 'business', 'technology', 'health', 'sports'][Math.floor(Math.random() * 5)],
-      language: 'en'
+      category:
+        category ||
+        ['general', 'business', 'technology', 'health', 'sports'][Math.floor(Math.random() * 5)],
+      language: 'en',
     });
   }
 
@@ -139,21 +158,24 @@ function formatArticles(articles: NewsArticle[]): string {
     return '📰 No articles found matching your criteria.';
   }
 
-  return articles.map((article, index) => {
-    const publishedTime = article.publishedAt ? 
-      new Date(article.publishedAt).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short', 
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      }) : 'Unknown';
+  return articles
+    .map((article, index) => {
+      const publishedTime = article.publishedAt
+        ? new Date(article.publishedAt).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          })
+        : 'Unknown';
 
-    return `**${index + 1}. ${article.title}**
+      return `**${index + 1}. ${article.title}**
 📅 ${publishedTime} | 🏢 ${article.source}${article.category ? ` | 🏷️ ${article.category}` : ''}
 📝 ${article.description || 'No description available'}
 🔗 ${article.url}`;
-  }).join('\n\n');
+    })
+    .join('\n\n');
 }
 
 // =============================================================================
@@ -171,15 +193,26 @@ function registerSearchNewsTool(server: McpServer) {
       description: 'Search for news articles by query with language and limit options',
       inputSchema: {
         query: z.string().describe('Search query for news articles'),
-        limit: z.number().int().min(1).max(50).optional().default(10).describe('Maximum number of articles to return (1-50, default: 10)'),
-        language: z.string().optional().default('en').describe('Language code for articles (default: en)')
-      }
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(50)
+          .optional()
+          .default(10)
+          .describe('Maximum number of articles to return (1-50, default: 10)'),
+        language: z
+          .string()
+          .optional()
+          .default('en')
+          .describe('Language code for articles (default: en)'),
+      },
     },
     async ({ query, limit = 10, language = 'en' }) => {
       updateStats('search_news');
-      
+
       console.error(`🔍 News search: query='${query}', limit=${limit}, language=${language}`);
-      
+
       const articles = generateMockArticles(query, undefined, limit);
       const formattedResults = formatArticles(articles);
 
@@ -192,10 +225,12 @@ function registerSearchNewsTool(server: McpServer) {
 ${formattedResults}`;
 
       return {
-        content: [{
-          type: 'text',
-          text: summary
-        }]
+        content: [
+          {
+            type: 'text',
+            text: summary,
+          },
+        ],
       };
     }
   );
@@ -211,15 +246,32 @@ function registerCategoryNewsTool(server: McpServer) {
       title: 'Get Category News',
       description: 'Get news articles from a specific category',
       inputSchema: {
-        category: z.enum(['general', 'business', 'technology', 'health', 'sports', 'entertainment', 'science']).describe('News category to fetch'),
-        limit: z.number().int().min(1).max(50).optional().default(10).describe('Maximum number of articles to return (1-50, default: 10)')
-      }
+        category: z
+          .enum([
+            'general',
+            'business',
+            'technology',
+            'health',
+            'sports',
+            'entertainment',
+            'science',
+          ])
+          .describe('News category to fetch'),
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(50)
+          .optional()
+          .default(10)
+          .describe('Maximum number of articles to return (1-50, default: 10)'),
+      },
     },
     async ({ category, limit = 10 }) => {
       updateStats('get_category_news');
-      
+
       console.error(`📂 Category news: category='${category}', limit=${limit}`);
-      
+
       const articles = generateMockArticles(`${category} news`, category, limit);
       const formattedResults = formatArticles(articles);
 
@@ -230,10 +282,12 @@ function registerCategoryNewsTool(server: McpServer) {
 ${formattedResults}`;
 
       return {
-        content: [{
-          type: 'text',
-          text: summary
-        }]
+        content: [
+          {
+            type: 'text',
+            text: summary,
+          },
+        ],
       };
     }
   );
@@ -249,31 +303,51 @@ function registerTrendingNewsTool(server: McpServer) {
       title: 'Get Trending News',
       description: 'Get trending news articles by country',
       inputSchema: {
-        country: z.string().optional().default('us').describe('Country code for trending news (default: us)'),
-        limit: z.number().int().min(1).max(50).optional().default(10).describe('Maximum number of articles to return (1-50, default: 10)')
-      }
+        country: z
+          .string()
+          .optional()
+          .default('us')
+          .describe('Country code for trending news (default: us)'),
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(50)
+          .optional()
+          .default(10)
+          .describe('Maximum number of articles to return (1-50, default: 10)'),
+      },
     },
     async ({ country = 'us', limit = 10 }) => {
       updateStats('get_trending_news');
-      
+
       console.error(`🔥 Trending news: country='${country}', limit=${limit}`);
-      
+
       // Generate trending articles with country-specific content
       const trendingTopics = [
-        'Election Updates', 'Technology Breakthrough', 'Economic Policy',
-        'Climate Change', 'Healthcare Innovation', 'Sports Championship',
-        'Entertainment News', 'Scientific Discovery'
+        'Election Updates',
+        'Technology Breakthrough',
+        'Economic Policy',
+        'Climate Change',
+        'Healthcare Innovation',
+        'Sports Championship',
+        'Entertainment News',
+        'Scientific Discovery',
       ];
-      
+
       const randomTopic = trendingTopics[Math.floor(Math.random() * trendingTopics.length)];
-      const articles = generateMockArticles(`${randomTopic} in ${country.toUpperCase()}`, 'trending', limit);
-      
+      const articles = generateMockArticles(
+        `${randomTopic} in ${country.toUpperCase()}`,
+        'trending',
+        limit
+      );
+
       // Add country-specific metadata
       articles.forEach(article => {
         article.country = country;
         article.category = 'trending';
       });
-      
+
       const formattedResults = formatArticles(articles);
 
       const summary = `🔥 **Trending News: ${country.toUpperCase()}**
@@ -284,10 +358,12 @@ function registerTrendingNewsTool(server: McpServer) {
 ${formattedResults}`;
 
       return {
-        content: [{
-          type: 'text',
-          text: summary
-        }]
+        content: [
+          {
+            type: 'text',
+            text: summary,
+          },
+        ],
       };
     }
   );
@@ -303,14 +379,18 @@ function registerServerStatusTool(server: McpServer) {
       title: 'Server Status',
       description: 'Get news server health status and usage statistics',
       inputSchema: {
-        includeStats: z.boolean().optional().default(true).describe('Include detailed usage statistics (default: true)')
-      }
+        includeStats: z
+          .boolean()
+          .optional()
+          .default(true)
+          .describe('Include detailed usage statistics (default: true)'),
+      },
     },
     async ({ includeStats = true }) => {
       updateStats('get_server_status');
-      
+
       console.error('📊 Server status requested');
-      
+
       const status = {
         server: SERVER_NAME,
         version: SERVER_VERSION,
@@ -319,8 +399,8 @@ function registerServerStatusTool(server: McpServer) {
         uptime: process.uptime(),
         memory: {
           used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
-          total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024)
-        }
+          total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024),
+        },
       };
 
       let responseText = `📊 **News Data Server Status**
@@ -346,10 +426,12 @@ function registerServerStatusTool(server: McpServer) {
       }
 
       return {
-        content: [{
-          type: 'text',
-          text: responseText
-        }]
+        content: [
+          {
+            type: 'text',
+            text: responseText,
+          },
+        ],
       };
     }
   );
@@ -365,35 +447,47 @@ function registerCategoriesTool(server: McpServer) {
       title: 'Get Categories',
       description: 'List all available news categories with descriptions',
       inputSchema: {
-        includeStats: z.boolean().optional().default(false).describe('Include usage statistics per category (default: false)')
-      }
+        includeStats: z
+          .boolean()
+          .optional()
+          .default(false)
+          .describe('Include usage statistics per category (default: false)'),
+      },
     },
     async ({ includeStats = false }) => {
       updateStats('get_categories');
-      
+
       console.error('📂 Categories list requested');
-      
+
       const categories = [
         { name: 'general', description: 'General news and current events', icon: '📰' },
         { name: 'business', description: 'Business, finance, and economic news', icon: '💼' },
-        { name: 'technology', description: 'Technology, innovation, and digital trends', icon: '💻' },
+        {
+          name: 'technology',
+          description: 'Technology, innovation, and digital trends',
+          icon: '💻',
+        },
         { name: 'health', description: 'Health, medicine, and wellness news', icon: '🏥' },
         { name: 'sports', description: 'Sports news, scores, and athlete updates', icon: '⚽' },
-        { name: 'entertainment', description: 'Entertainment, celebrities, and pop culture', icon: '🎬' },
-        { name: 'science', description: 'Scientific discoveries and research', icon: '🔬' }
+        {
+          name: 'entertainment',
+          description: 'Entertainment, celebrities, and pop culture',
+          icon: '🎬',
+        },
+        { name: 'science', description: 'Scientific discoveries and research', icon: '🔬' },
       ];
 
       let responseText = '📂 **Available News Categories**\n\n';
-      
+
       categories.forEach((cat, index) => {
         responseText += `**${index + 1}. ${cat.icon} ${cat.name.toUpperCase()}**\n`;
         responseText += `   📝 ${cat.description}\n`;
-        
+
         if (includeStats) {
           const usage = serverStats.toolUsage['get_category_news'] || 0;
           responseText += `   📊 Usage: ${usage} requests\n`;
         }
-        
+
         responseText += '\n';
       });
 
@@ -402,10 +496,12 @@ function registerCategoriesTool(server: McpServer) {
 📖 **Example:** get_category_news(category="technology", limit=5)`;
 
       return {
-        content: [{
-          type: 'text',
-          text: responseText
-        }]
+        content: [
+          {
+            type: 'text',
+            text: responseText,
+          },
+        ],
       };
     }
   );
@@ -421,16 +517,16 @@ function registerCategoriesTool(server: McpServer) {
 function createServer(): McpServer {
   const server = new McpServer({
     name: SERVER_NAME,
-    version: SERVER_VERSION
+    version: SERVER_VERSION,
   });
-  
+
   // Register all news tools
   registerSearchNewsTool(server);
   registerCategoryNewsTool(server);
   registerTrendingNewsTool(server);
   registerServerStatusTool(server);
   registerCategoriesTool(server);
-  
+
   return server;
 }
 
@@ -440,7 +536,7 @@ function createServer(): McpServer {
 function setupGracefulShutdown(server: McpServer): void {
   const shutdown = async (signal: string) => {
     console.error(`\nReceived ${signal}, shutting down gracefully...`);
-    
+
     try {
       await server.close();
       console.error('News data server stopped successfully');
@@ -450,17 +546,17 @@ function setupGracefulShutdown(server: McpServer): void {
       process.exit(1);
     }
   };
-  
+
   process.on('SIGTERM', () => shutdown('SIGTERM'));
   process.on('SIGINT', () => shutdown('SIGINT'));
   process.on('SIGHUP', () => shutdown('SIGHUP'));
-  
-  process.on('uncaughtException', (error) => {
+
+  process.on('uncaughtException', error => {
     console.error('Uncaught exception in news server:', error);
     process.exit(1);
   });
-  
-  process.on('unhandledRejection', (reason) => {
+
+  process.on('unhandledRejection', reason => {
     console.error('Unhandled promise rejection in news server:', reason);
     process.exit(1);
   });
@@ -480,37 +576,36 @@ async function main(): Promise<void> {
     console.error('🔌 Transport: stdio');
     console.error('📰 Tools: search, category, trending, status, categories');
     console.error('📡 Ready to receive MCP requests...\n');
-    
+
     // Create server
     const server = createServer();
-    
+
     // Setup graceful shutdown
     setupGracefulShutdown(server);
-    
+
     // Create stdio transport
     const transport = new StdioServerTransport();
-    
+
     // Connect server to transport
     await server.connect(transport);
-    
+
     console.error('✅ News data server connected successfully');
     console.error('💡 Available tools:');
     console.error('   • search_news - Search articles by query');
     console.error('   • get_category_news - Get articles by category');
-    console.error('   • get_trending_news - Get trending articles by country'); 
+    console.error('   • get_trending_news - Get trending articles by country');
     console.error('   • get_server_status - Get server health and stats');
     console.error('   • get_categories - List available categories');
     console.error('💡 Use Ctrl+C to stop the server\n');
-    
   } catch (error) {
     console.error('💥 Failed to start news data server:');
     console.error(error instanceof Error ? error.message : String(error));
-    
+
     if (error instanceof Error && error.stack) {
       console.error('\n🔍 Stack trace:');
       console.error(error.stack);
     }
-    
+
     process.exit(1);
   }
 }
@@ -521,7 +616,7 @@ async function main(): Promise<void> {
 
 // Start the server if this file is run directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-  main().catch((error) => {
+  main().catch(error => {
     console.error('💥 Bootstrap error:', error);
     process.exit(1);
   });

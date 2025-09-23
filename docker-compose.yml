@@ -14,7 +14,7 @@
 # @version 1.0.0
 # =============================================================================
 
-version: '3.8'
+version: "3.8"
 
 # =============================================================================
 # Shared Configuration
@@ -70,7 +70,7 @@ services:
       - "mcp.type=production"
       - "mcp.tools=5"
 
-  # Template Server - Port 8001  
+  # Template Server - Port 8001
   template:
     <<: *common-config
     container_name: mcp-template
@@ -101,7 +101,7 @@ services:
     command: ["/usr/local/bin/entrypoint.sh", "analytics"]
     labels:
       - "mcp.service=analytics"
-      - "mcp.type=production" 
+      - "mcp.type=production"
       - "mcp.tools=8"
 
   # Database Server - Port 8003
@@ -166,9 +166,9 @@ services:
       - "mcp.type=production"
       - "mcp.tools=8"
 
-# =============================================================================
-# Template Servers (Development)
-# =============================================================================
+  # =============================================================================
+  # Template Servers (Development)
+  # =============================================================================
 
   # Basic Server Template - Port 8010
   basic-template:
@@ -259,9 +259,9 @@ services:
       - "mcp.type=template"
       - "mcp.tools=8"
 
-# =============================================================================
-# Supporting Services
-# =============================================================================
+  # =============================================================================
+  # Supporting Services
+  # =============================================================================
 
   # PostgreSQL Database
   postgres:
@@ -337,9 +337,9 @@ services:
       - "mcp.service=nginx"
       - "mcp.type=proxy"
 
-# =============================================================================
-# Development Services
-# =============================================================================
+  # =============================================================================
+  # Development Services
+  # =============================================================================
 
   # Development All-in-One
   dev-all:
@@ -377,9 +377,9 @@ services:
       - "mcp.service=client-example"
       - "mcp.type=example"
 
-# =============================================================================
-# Monitoring Services (Optional)
-# =============================================================================
+  # =============================================================================
+  # Monitoring Services (Optional)
+  # =============================================================================
 
   # Prometheus Monitoring
   prometheus:
@@ -449,7 +449,7 @@ volumes:
   mcp-data:
     driver: local
     driver_opts:
-      type: none  
+      type: none
       o: bind
       device: ./data/app
 

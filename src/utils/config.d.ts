@@ -34,10 +34,10 @@ export declare const LoggingConfigSchema: z.ZodObject<{
     maxFiles: number;
     file?: string | undefined;
 }, {
-    file?: string | undefined;
     level?: "error" | "warn" | "info" | "debug" | "trace" | undefined;
     format?: "json" | "pretty" | undefined;
     output?: "console" | "file" | "both" | undefined;
+    file?: string | undefined;
     maxSize?: string | undefined;
     maxFiles?: number | undefined;
 }>;
@@ -221,10 +221,10 @@ export declare const CompleteServerConfigSchema: z.ZodObject<{
         maxFiles: number;
         file?: string | undefined;
     }, {
-        file?: string | undefined;
         level?: "error" | "warn" | "info" | "debug" | "trace" | undefined;
         format?: "json" | "pretty" | undefined;
         output?: "console" | "file" | "both" | undefined;
+        file?: string | undefined;
         maxSize?: string | undefined;
         maxFiles?: number | undefined;
     }>;
@@ -237,12 +237,12 @@ export declare const CompleteServerConfigSchema: z.ZodObject<{
             maxRequests: z.ZodDefault<z.ZodNumber>;
         }, "strip", z.ZodTypeAny, {
             enabled: boolean;
-            windowMs: number;
             maxRequests: number;
+            windowMs: number;
         }, {
             enabled?: boolean | undefined;
-            windowMs?: number | undefined;
             maxRequests?: number | undefined;
+            windowMs?: number | undefined;
         }>;
         cors: z.ZodObject<{
             enabled: z.ZodDefault<z.ZodBoolean>;
@@ -259,27 +259,27 @@ export declare const CompleteServerConfigSchema: z.ZodObject<{
         }>;
     }, "strip", z.ZodTypeAny, {
         enableAuth: boolean;
-        rateLimiting: {
-            enabled: boolean;
-            windowMs: number;
-            maxRequests: number;
-        };
         cors: {
             enabled: boolean;
             methods: string[];
             origins: string[];
         };
+        rateLimiting: {
+            enabled: boolean;
+            maxRequests: number;
+            windowMs: number;
+        };
         apiKeys?: string[] | undefined;
     }, {
-        rateLimiting: {
-            enabled?: boolean | undefined;
-            windowMs?: number | undefined;
-            maxRequests?: number | undefined;
-        };
         cors: {
             enabled?: boolean | undefined;
             methods?: string[] | undefined;
             origins?: string[] | undefined;
+        };
+        rateLimiting: {
+            enabled?: boolean | undefined;
+            maxRequests?: number | undefined;
+            windowMs?: number | undefined;
         };
         enableAuth?: boolean | undefined;
         apiKeys?: string[] | undefined;
@@ -337,15 +337,15 @@ export declare const CompleteServerConfigSchema: z.ZodObject<{
     };
     security: {
         enableAuth: boolean;
-        rateLimiting: {
-            enabled: boolean;
-            windowMs: number;
-            maxRequests: number;
-        };
         cors: {
             enabled: boolean;
             methods: string[];
             origins: string[];
+        };
+        rateLimiting: {
+            enabled: boolean;
+            maxRequests: number;
+            windowMs: number;
         };
         apiKeys?: string[] | undefined;
     };
@@ -365,23 +365,23 @@ export declare const CompleteServerConfigSchema: z.ZodObject<{
     description: string;
     port: number;
     logging: {
-        file?: string | undefined;
         level?: "error" | "warn" | "info" | "debug" | "trace" | undefined;
         format?: "json" | "pretty" | undefined;
         output?: "console" | "file" | "both" | undefined;
+        file?: string | undefined;
         maxSize?: string | undefined;
         maxFiles?: number | undefined;
     };
     security: {
-        rateLimiting: {
-            enabled?: boolean | undefined;
-            windowMs?: number | undefined;
-            maxRequests?: number | undefined;
-        };
         cors: {
             enabled?: boolean | undefined;
             methods?: string[] | undefined;
             origins?: string[] | undefined;
+        };
+        rateLimiting: {
+            enabled?: boolean | undefined;
+            maxRequests?: number | undefined;
+            windowMs?: number | undefined;
         };
         enableAuth?: boolean | undefined;
         apiKeys?: string[] | undefined;

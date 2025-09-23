@@ -1,16 +1,16 @@
 /**
  * @fileoverview Configuration Management Utilities
- * 
+ *
  * This module provides utilities for loading, validating, and managing
  * configuration for MCP servers in the boilerplate ecosystem.
- * 
+ *
  * Features:
  * - Environment variable loading with type safety
  * - Configuration validation with Zod schemas
  * - Default configuration generation
  * - Configuration merging and overrides
  * - Environment-specific configurations
- * 
+ *
  * @author MCP Boilerplate Team
  * @version 0.3.0
  */
@@ -102,14 +102,14 @@ const ServerConfigSchema = z.object({
 
 /**
  * Create default server configuration
- * 
+ *
  * @param serverName - Optional server name for port assignment
  * @returns Default configuration object
  */
 export function createDefaultConfig(serverName?: string): McpServerConfig {
   const port = getDefaultPort(serverName);
   const environment = getEnvironment();
-  
+
   return {
     name: serverName || 'mcp-server',
     version: '1.0.0',
@@ -125,14 +125,14 @@ export function createDefaultConfig(serverName?: string): McpServerConfig {
 
 /**
  * Create default logging configuration based on environment
- * 
+ *
  * @param environment - Target environment
  * @returns Logging configuration
  */
 function createDefaultLoggingConfig(environment: string): LoggingConfig {
   const isDevelopment = environment === 'development';
   const isProduction = environment === 'production';
-  
+
   return {
     level: isDevelopment ? 'debug' : isProduction ? 'info' : 'warn',
     format: isDevelopment ? 'pretty' : 'json',
@@ -145,13 +145,13 @@ function createDefaultLoggingConfig(environment: string): LoggingConfig {
 
 /**
  * Create default security configuration based on environment
- * 
+ *
  * @param environment - Target environment
  * @returns Security configuration
  */
 function createDefaultSecurityConfig(environment: string): SecurityConfig {
   const isProduction = environment === 'production';
-  
+
   return {
     enableAuth: isProduction,
     rateLimiting: {
@@ -169,13 +169,13 @@ function createDefaultSecurityConfig(environment: string): SecurityConfig {
 
 /**
  * Create default performance configuration based on environment
- * 
+ *
  * @param environment - Target environment
  * @returns Performance configuration
  */
 function createDefaultPerformanceConfig(environment: string): PerformanceConfig {
   const isProduction = environment === 'production';
-  
+
   return {
     timeout: DEFAULT_TIMEOUTS.TOOL_EXECUTION,
     maxConcurrentRequests: isProduction ? 200 : DEFAULT_LIMITS.MAX_CONCURRENT_REQUESTS,
@@ -194,12 +194,12 @@ function createDefaultPerformanceConfig(environment: string): PerformanceConfig 
 
 /**
  * Get current environment from NODE_ENV or default
- * 
+ *
  * @returns Environment string
  */
 function getEnvironment(): 'development' | 'production' | 'test' {
   const env = process.env.NODE_ENV?.toLowerCase();
-  
+
   switch (env) {
     case 'production':
     case 'prod':
@@ -214,15 +214,15 @@ function getEnvironment(): 'development' | 'production' | 'test' {
 
 /**
  * Get default port for server based on name
- * 
+ *
  * @param serverName - Server name
  * @returns Default port number
  */
 function getDefaultPort(serverName?: string): number {
   if (!serverName) return 8000;
-  
+
   const normalizedName = serverName.toLowerCase().replace(/[-_]/g, '');
-  
+
   // Map server names to default ports
   if (normalizedName.includes('news') || normalizedName.includes('data')) {
     return DEFAULT_PORTS.NEWS_DATA;
@@ -242,13 +242,13 @@ function getDefaultPort(serverName?: string): number {
   if (normalizedName.includes('workflow')) {
     return DEFAULT_PORTS.WORKFLOW;
   }
-  
+
   return 8000; // Default fallback
 }
 
 /**
  * Get environment variable with optional fallback
- * 
+ *
  * @param key - Environment variable key
  * @param fallback - Fallback value if not found
  * @returns Environment variable value or fallback
@@ -260,7 +260,7 @@ function getEnvVar(key: string, fallback?: string): string | undefined {
 
 /**
  * Get environment variable as number
- * 
+ *
  * @param key - Environment variable key
  * @param fallback - Fallback value if not found or invalid
  * @returns Parsed number or fallback
@@ -268,14 +268,14 @@ function getEnvVar(key: string, fallback?: string): string | undefined {
 function getEnvNumber(key: string, fallback: number): number {
   const value = getEnvVar(key);
   if (!value) return fallback;
-  
+
   const parsed = parseInt(value, 10);
   return isNaN(parsed) ? fallback : parsed;
 }
 
 /**
  * Get environment variable as boolean
- * 
+ *
  * @param key - Environment variable key
  * @param fallback - Fallback value if not found
  * @returns Boolean value or fallback
@@ -283,7 +283,7 @@ function getEnvNumber(key: string, fallback: number): number {
 function getEnvBoolean(key: string, fallback: boolean): boolean {
   const value = getEnvVar(key);
   if (!value) return fallback;
-  
+
   return ['true', '1', 'yes', 'on'].includes(value.toLowerCase());
 }
 
@@ -293,32 +293,32 @@ function getEnvBoolean(key: string, fallback: boolean): boolean {
 
 /**
  * Load configuration from environment variables
- * 
+ *
  * @param serverName - Server name for defaults
  * @returns Configuration loaded from environment
  */
 export function loadConfigFromEnv(serverName?: string): Partial<McpServerConfig> {
   const config: Partial<McpServerConfig> = {};
-  
+
   // Basic configuration
   const envName = getEnvVar('SERVER_NAME') || getEnvVar('NAME');
   if (envName) config.name = envName;
-  
+
   const envVersion = getEnvVar('VERSION');
   if (envVersion) config.version = envVersion;
-  
+
   const envDescription = getEnvVar('DESCRIPTION');
   if (envDescription) config.description = envDescription;
-  
+
   const envPort = getEnvNumber('PORT', getDefaultPort(serverName));
   config.port = envPort;
-  
+
   const envHost = getEnvVar('HOST') || getEnvVar('BIND_HOST');
   if (envHost) config.host = envHost;
-  
+
   // Environment
   config.environment = getEnvironment();
-  
+
   // Logging configuration
   config.logging = {
     level: (getEnvVar('LOG_LEVEL') as LoggingConfig['level']) || 'info',
@@ -328,11 +328,13 @@ export function loadConfigFromEnv(serverName?: string): Partial<McpServerConfig>
     maxSize: getEnvVar('LOG_MAX_SIZE') || '10MB',
     maxFiles: getEnvNumber('LOG_MAX_FILES', 5),
   };
-  
+
   // Security configuration
   config.security = {
     enableAuth: getEnvBoolean('ENABLE_AUTH', false),
-    apiKeys: getEnvVar('API_KEYS')?.split(',').map(key => key.trim()),
+    apiKeys: getEnvVar('API_KEYS')
+      ?.split(',')
+      .map(key => key.trim()),
     rateLimiting: {
       enabled: getEnvBoolean('RATE_LIMIT_ENABLED', true),
       windowMs: getEnvNumber('RATE_LIMIT_WINDOW', DEFAULT_LIMITS.RATE_LIMIT_WINDOW),
@@ -340,12 +342,15 @@ export function loadConfigFromEnv(serverName?: string): Partial<McpServerConfig>
     },
     cors: {
       enabled: getEnvBoolean('CORS_ENABLED', true),
-      origins: getEnvVar('CORS_ORIGINS')?.split(',').map(origin => origin.trim()) || ['*'],
-      methods: getEnvVar('CORS_METHODS')?.split(',').map(method => method.trim()) || 
-                ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      origins: getEnvVar('CORS_ORIGINS')
+        ?.split(',')
+        .map(origin => origin.trim()) || ['*'],
+      methods: getEnvVar('CORS_METHODS')
+        ?.split(',')
+        .map(method => method.trim()) || ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     },
   };
-  
+
   // Performance configuration
   config.performance = {
     timeout: getEnvNumber('TIMEOUT', DEFAULT_TIMEOUTS.TOOL_EXECUTION),
@@ -357,13 +362,13 @@ export function loadConfigFromEnv(serverName?: string): Partial<McpServerConfig>
       maxSize: getEnvNumber('CACHE_MAX_SIZE', 1000),
     },
   };
-  
+
   return config;
 }
 
 /**
  * Load configuration from JSON file
- * 
+ *
  * @param filePath - Path to configuration file
  * @returns Configuration object
  * @throws {ServerConfigError} When file cannot be loaded or parsed
@@ -373,12 +378,12 @@ export async function loadConfigFromFile(filePath: string): Promise<Partial<McpS
     const fs = await import('fs/promises');
     const fileContent = await fs.readFile(filePath, 'utf-8');
     const parsed = JSON.parse(fileContent) as unknown;
-    
+
     // Basic validation that it's an object
     if (typeof parsed !== 'object' || parsed === null) {
       throw new Error('Configuration file must contain a JSON object');
     }
-    
+
     return parsed as Partial<McpServerConfig>;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -388,7 +393,7 @@ export async function loadConfigFromFile(filePath: string): Promise<Partial<McpS
 
 /**
  * Validate and normalize configuration
- * 
+ *
  * @param config - Configuration to validate
  * @returns Validated configuration
  * @throws {ServerConfigError} When configuration is invalid
@@ -399,12 +404,12 @@ export function validateConfig(config: Partial<McpServerConfig>): McpServerConfi
     return result as McpServerConfig;
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const issues = error.issues.map(issue => 
-        `${issue.path.join('.')}: ${issue.message}`
-      ).join(', ');
+      const issues = error.issues
+        .map(issue => `${issue.path.join('.')}: ${issue.message}`)
+        .join(', ');
       throw new ServerConfigError(`Configuration validation failed: ${issues}`);
     }
-    
+
     const message = error instanceof Error ? error.message : String(error);
     throw new ServerConfigError(`Configuration validation error: ${message}`);
   }
@@ -412,16 +417,16 @@ export function validateConfig(config: Partial<McpServerConfig>): McpServerConfi
 
 /**
  * Merge multiple configuration objects with proper precedence
- * 
+ *
  * @param configs - Configuration objects in order of precedence (later overrides earlier)
  * @returns Merged configuration
  */
 export function mergeConfigs(...configs: Partial<McpServerConfig>[]): Partial<McpServerConfig> {
   const merged: Partial<McpServerConfig> = {};
-  
+
   for (const config of configs) {
     Object.assign(merged, config);
-    
+
     // Deep merge nested objects
     if (config.logging && merged.logging) {
       merged.logging = { ...merged.logging, ...config.logging };
@@ -451,13 +456,13 @@ export function mergeConfigs(...configs: Partial<McpServerConfig>[]): Partial<Mc
       };
     }
   }
-  
+
   return merged;
 }
 
 /**
  * Load complete configuration with all sources
- * 
+ *
  * @param serverName - Server name for defaults
  * @param configFile - Optional configuration file path
  * @returns Complete validated configuration
@@ -470,27 +475,26 @@ export async function loadCompleteConfig(
   try {
     // Start with defaults
     const defaultConfig = createDefaultConfig(serverName);
-    
+
     // Load from file if provided
     let fileConfig: Partial<McpServerConfig> = {};
     if (configFile) {
       fileConfig = await loadConfigFromFile(configFile);
     }
-    
+
     // Load from environment
     const envConfig = loadConfigFromEnv(serverName);
-    
+
     // Merge in order: defaults < file < environment
     const mergedConfig = mergeConfigs(defaultConfig, fileConfig, envConfig);
-    
+
     // Validate final configuration
     return validateConfig(mergedConfig);
-    
   } catch (error) {
     if (error instanceof ServerConfigError) {
       throw error;
     }
-    
+
     const message = error instanceof Error ? error.message : String(error);
     throw new ServerConfigError(`Failed to load configuration: ${message}`);
   }
@@ -502,7 +506,7 @@ export async function loadCompleteConfig(
 
 /**
  * Check if running in development environment
- * 
+ *
  * @returns True if development environment
  */
 export function isDevelopment(): boolean {
@@ -511,7 +515,7 @@ export function isDevelopment(): boolean {
 
 /**
  * Check if running in production environment
- * 
+ *
  * @returns True if production environment
  */
 export function isProduction(): boolean {
@@ -520,7 +524,7 @@ export function isProduction(): boolean {
 
 /**
  * Check if running in test environment
- * 
+ *
  * @returns True if test environment
  */
 function isTest(): boolean {
@@ -529,31 +533,27 @@ function isTest(): boolean {
 
 /**
  * Get configuration value with environment override
- * 
+ *
  * @param key - Configuration key
  * @param defaultValue - Default value
  * @param envKey - Optional environment variable key (defaults to uppercased key)
  * @returns Configuration value
  */
-export function getConfigValue<T>(
-  key: string,
-  defaultValue: T,
-  envKey?: string
-): T {
+export function getConfigValue<T>(key: string, defaultValue: T, envKey?: string): T {
   const envValue = getEnvVar(envKey || key);
-  
+
   if (!envValue) return defaultValue;
-  
+
   // Type conversion based on default value type
   if (typeof defaultValue === 'number') {
     const parsed = parseInt(envValue, 10);
     return (isNaN(parsed) ? defaultValue : parsed) as T;
   }
-  
+
   if (typeof defaultValue === 'boolean') {
     return getEnvBoolean(envKey || key, defaultValue as boolean) as T;
   }
-  
+
   return envValue as T;
 }
 
@@ -563,21 +563,19 @@ export function getConfigValue<T>(
 
 /**
  * Validate port number
- * 
+ *
  * @param port - Port to validate
  * @throws {ServerConfigError} When port is invalid
  */
 export function validatePort(port: number): void {
   if (!Number.isInteger(port) || port < 1024 || port > 65535) {
-    throw new ServerConfigError(
-      `Invalid port ${port}: must be integer between 1024 and 65535`
-    );
+    throw new ServerConfigError(`Invalid port ${port}: must be integer between 1024 and 65535`);
   }
 }
 
 /**
  * Validate server name
- * 
+ *
  * @param name - Name to validate
  * @throws {ServerConfigError} When name is invalid
  */
@@ -585,11 +583,11 @@ export function validateServerName(name: string): void {
   if (!name || typeof name !== 'string') {
     throw new ServerConfigError('Server name is required and must be a string');
   }
-  
+
   if (name.length < 1 || name.length > 100) {
     throw new ServerConfigError('Server name must be between 1 and 100 characters');
   }
-  
+
   if (!/^[a-zA-Z0-9\-_]+$/.test(name)) {
     throw new ServerConfigError(
       'Server name can only contain letters, numbers, hyphens, and underscores'
@@ -599,7 +597,7 @@ export function validateServerName(name: string): void {
 
 /**
  * Validate semver version string
- * 
+ *
  * @param version - Version to validate
  * @throws {ServerConfigError} When version is invalid
  */
@@ -617,13 +615,13 @@ export function validateVersion(version: string): void {
 
 /**
  * Create development configuration template
- * 
+ *
  * @param serverName - Server name
  * @returns Development configuration
  */
 export function createDevConfig(serverName: string): McpServerConfig {
   const base = createDefaultConfig(serverName);
-  
+
   return {
     ...base,
     environment: 'development',
@@ -654,13 +652,13 @@ export function createDevConfig(serverName: string): McpServerConfig {
 
 /**
  * Create production configuration template
- * 
+ *
  * @param serverName - Server name
  * @returns Production configuration
  */
 export function createProdConfig(serverName: string): McpServerConfig {
   const base = createDefaultConfig(serverName);
-  
+
   return {
     ...base,
     environment: 'production',
@@ -700,13 +698,13 @@ export function createProdConfig(serverName: string): McpServerConfig {
 
 /**
  * Create test configuration template
- * 
+ *
  * @param serverName - Server name
  * @returns Test configuration
  */
 export function createTestConfig(serverName: string): McpServerConfig {
   const base = createDefaultConfig(serverName);
-  
+
   return {
     ...base,
     environment: 'test',
@@ -742,7 +740,7 @@ export function createTestConfig(serverName: string): McpServerConfig {
 
 /**
  * Export configuration to JSON string
- * 
+ *
  * @param config - Configuration to export
  * @param pretty - Whether to format JSON prettily
  * @returns JSON string representation
@@ -753,7 +751,7 @@ export function exportConfig(config: McpServerConfig, pretty = true): string {
 
 /**
  * Export configuration to file
- * 
+ *
  * @param config - Configuration to export
  * @param filePath - Target file path
  * @param pretty - Whether to format JSON prettily
@@ -784,7 +782,7 @@ export const CompleteServerConfigSchema = ServerConfigSchema;
 
 /**
  * Validate configuration against schema and return detailed errors
- * 
+ *
  * @param config - Configuration to validate
  * @returns Validation result with detailed error information
  */
@@ -801,15 +799,13 @@ export function validateConfigDetailed(config: unknown): {
     };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const errors = error.issues.map(issue => 
-        `${issue.path.join('.')}: ${issue.message}`
-      );
+      const errors = error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`);
       return {
         success: false,
         errors,
       };
     }
-    
+
     return {
       success: false,
       errors: [error instanceof Error ? error.message : String(error)],
@@ -832,7 +828,7 @@ export {
 
 /**
  * Quick configuration loader for common scenarios
- * 
+ *
  * @param serverName - Server name
  * @param options - Loading options
  * @returns Validated configuration
@@ -848,6 +844,6 @@ export async function quickConfig(
   if (options.environment) {
     process.env.NODE_ENV = options.environment;
   }
-  
+
   return loadCompleteConfig(serverName, options.configFile);
 }

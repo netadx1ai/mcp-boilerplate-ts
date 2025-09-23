@@ -1,17 +1,15 @@
 /**
  * @fileoverview Main MCP Boilerplate TypeScript Library Index
- * 
+ *
  * This module provides the main exports for the MCP boilerplate TypeScript ecosystem,
  * including core server classes, transport implementations, types, and utilities.
- * 
+ *
  * @author MCP Boilerplate Team
  * @version 0.3.0
  */
 
 // Core server exports
 export { BaseMcpServer } from './core/server.js';
-
-
 
 // Transport layer exports
 export {
@@ -28,7 +26,7 @@ export {
   CORS_ORIGINS,
   AUTH_HEADERS,
   RATE_LIMIT_WINDOWS,
-  TRANSPORT_PRESETS
+  TRANSPORT_PRESETS,
 } from './transport/index.js';
 
 // Type exports
@@ -46,12 +44,12 @@ export type {
   HealthCheck,
   EventPayload,
   EventListener,
-  
+
   // Configuration types
   LoggingConfig,
   SecurityConfig,
   PerformanceConfig,
-  
+
   // HTTP transport types
   HttpTransportConfig,
   HttpMcpServerConfig,
@@ -63,17 +61,16 @@ export type {
   HttpSecurityConfig,
   SwaggerConfig,
 
-  
   // Error types
   McpBoilerplateError,
   ServerConfigError,
   ToolExecutionError,
   ValidationError,
-  
+
   // Utility types
   UserContext,
   TelemetryConfig,
-  SpanContext
+  SpanContext,
 } from './types/index.js';
 
 // Utility exports
@@ -81,18 +78,10 @@ export { createDefaultConfig, validateConfig } from './utils/config.js';
 export { createDefaultLogger } from './utils/logger.js';
 
 // Type guards and validators
-export {
-  isMcpTool,
-  isToolResult,
-  isMcpBoilerplateError
-} from './types/index.js';
+export { isMcpTool, isToolResult, isMcpBoilerplateError } from './types/index.js';
 
 // Constants
-export {
-  DEFAULT_PORTS,
-  DEFAULT_TIMEOUTS,
-  DEFAULT_LIMITS
-} from './types/index.js';
+export { DEFAULT_PORTS, DEFAULT_TIMEOUTS, DEFAULT_LIMITS } from './types/index.js';
 
 // Version and metadata
 export const VERSION = '0.3.0';
@@ -113,7 +102,7 @@ export const METADATA = {
   license: 'MIT',
   engines: {
     node: '>=18.0.0',
-    npm: '>=8.0.0'
+    npm: '>=8.0.0',
   },
   keywords: [
     'mcp',
@@ -125,8 +114,8 @@ export const METADATA = {
     'server',
     'boilerplate',
     'http',
-    'transport'
-  ]
+    'transport',
+  ],
 } as const;
 
 /**
@@ -136,11 +125,7 @@ export class McpBoilerplateFactory {
   /**
    * Create a development MCP server with HTTP transport
    */
-  static createDevelopmentServer(config: {
-    name: string;
-    description: string;
-    port?: number;
-  }) {
+  static createDevelopmentServer(config: { name: string; description: string; port?: number }) {
     const { HttpMcpServerFactory } = require('./transport/http-server.js');
     return HttpMcpServerFactory.createDevelopment({
       name: config.name,
@@ -149,8 +134,8 @@ export class McpBoilerplateFactory {
       http: {
         port: config.port || 8000,
         host: 'localhost',
-        basePath: '/mcp'
-      }
+        basePath: '/mcp',
+      },
     });
   }
 
@@ -164,16 +149,19 @@ export class McpBoilerplateFactory {
     apiKeys: string[];
   }) {
     const { HttpMcpServerFactory } = require('./transport/http-server.js');
-    return HttpMcpServerFactory.createWithAuth({
-      name: config.name,
-      version: '1.0.0',
-      description: config.description,
-      http: {
-        port: config.port || 8080,
-        host: '0.0.0.0',
-        basePath: '/mcp'
-      }
-    }, config.apiKeys);
+    return HttpMcpServerFactory.createWithAuth(
+      {
+        name: config.name,
+        version: '1.0.0',
+        description: config.description,
+        http: {
+          port: config.port || 8080,
+          host: '0.0.0.0',
+          basePath: '/mcp',
+        },
+      },
+      config.apiKeys
+    );
   }
 
   /**
@@ -190,16 +178,18 @@ export class McpBoilerplateFactory {
       port: config.port || 8000,
       host: config.host || 'localhost',
       basePath: '/mcp',
-      auth: config.enableAuth ? {
-        enabled: true,
-        type: 'apikey',
-        apiKeys: config.apiKeys || [],
-        headerName: 'X-API-Key'
-      } : {
-        enabled: false,
-        type: 'apikey',
-        headerName: 'X-API-Key'
-      }
+      auth: config.enableAuth
+        ? {
+            enabled: true,
+            type: 'apikey',
+            apiKeys: config.apiKeys || [],
+            headerName: 'X-API-Key',
+          }
+        : {
+            enabled: false,
+            type: 'apikey',
+            headerName: 'X-API-Key',
+          },
     });
   }
 }
@@ -216,7 +206,7 @@ export const FEATURES = {
   SWAGGER_DOCS: true,
   METRICS: true,
   TELEMETRY: true,
-  HEALTH_CHECKS: true
+  HEALTH_CHECKS: true,
 } as const;
 
 /**
@@ -226,5 +216,5 @@ export const ENVIRONMENT = {
   isDevelopment: () => process.env.NODE_ENV === 'development',
   isProduction: () => process.env.NODE_ENV === 'production',
   isTest: () => process.env.NODE_ENV === 'test',
-  getNodeEnv: () => process.env.NODE_ENV || 'development'
+  getNodeEnv: () => process.env.NODE_ENV || 'development',
 } as const;

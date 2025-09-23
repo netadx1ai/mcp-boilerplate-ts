@@ -1,14 +1,20 @@
 # HTTP Transport for MCP TypeScript
 
-This document describes the HTTP transport implementation for the MCP (Model Context Protocol) TypeScript boilerplate project.
+This document describes the HTTP transport implementation for the MCP (Model
+Context Protocol) TypeScript boilerplate project.
 
 ## Overview
 
-The HTTP transport layer provides REST API capabilities for MCP servers, enabling HTTP-based communication alongside the existing stdio transport. This implementation offers:
+The HTTP transport layer provides REST API capabilities for MCP servers,
+enabling HTTP-based communication alongside the existing stdio transport. This
+implementation offers:
 
-- **JSON-RPC over HTTP**: Standard MCP protocol communication via HTTP POST endpoints
-- **RESTful Tool Execution**: Direct HTTP endpoints for individual tool execution
-- **Authentication & Security**: API key authentication, rate limiting, CORS support
+- **JSON-RPC over HTTP**: Standard MCP protocol communication via HTTP POST
+  endpoints
+- **RESTful Tool Execution**: Direct HTTP endpoints for individual tool
+  execution
+- **Authentication & Security**: API key authentication, rate limiting, CORS
+  support
 - **OpenAPI Documentation**: Auto-generated Swagger documentation
 - **Production Ready**: Security headers, request validation, error handling
 
@@ -16,9 +22,11 @@ The HTTP transport layer provides REST API capabilities for MCP servers, enablin
 
 ### Core Components
 
-1. **HttpTransport**: Implements the MCP SDK `Transport` interface for HTTP communication
+1. **HttpTransport**: Implements the MCP SDK `Transport` interface for HTTP
+   communication
 2. **HttpMcpServer**: Extends `BaseMcpServer` with HTTP transport capabilities
-3. **HttpTransportFactory**: Factory classes for creating pre-configured transports
+3. **HttpTransportFactory**: Factory classes for creating pre-configured
+   transports
 4. **Middleware Stack**: Authentication, rate limiting, CORS, security headers
 
 ### Directory Structure
@@ -52,8 +60,8 @@ const server = HttpMcpServerFactory.createDevelopment({
   description: 'My HTTP MCP Server',
   http: {
     port: 8000,
-    host: 'localhost'
-  }
+    host: 'localhost',
+  },
 });
 
 // Register tools
@@ -80,9 +88,9 @@ const server = HttpMcpServerFactory.createProduction({
       enabled: true,
       type: 'apikey',
       apiKeys: ['your-secret-api-key'],
-      headerName: 'X-API-Key'
-    }
-  }
+      headerName: 'X-API-Key',
+    },
+  },
 });
 
 await server.start();
@@ -92,28 +100,31 @@ await server.start();
 
 ### Core Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET    | `/mcp/health` | Health check and server status |
-| GET    | `/mcp/info` | Server information and capabilities |
-| GET    | `/mcp/tools` | List all available tools |
-| POST   | `/mcp/tools/:name` | Execute specific tool |
-| POST   | `/mcp/rpc` | JSON-RPC endpoint for MCP protocol |
-| GET    | `/docs` | OpenAPI/Swagger documentation |
+| Method | Endpoint           | Description                         |
+| ------ | ------------------ | ----------------------------------- |
+| GET    | `/mcp/health`      | Health check and server status      |
+| GET    | `/mcp/info`        | Server information and capabilities |
+| GET    | `/mcp/tools`       | List all available tools            |
+| POST   | `/mcp/tools/:name` | Execute specific tool               |
+| POST   | `/mcp/rpc`         | JSON-RPC endpoint for MCP protocol  |
+| GET    | `/docs`            | OpenAPI/Swagger documentation       |
 
 ### Example Usage
 
 #### Health Check
+
 ```bash
 curl http://localhost:8000/mcp/health
 ```
 
 #### List Tools
+
 ```bash
 curl http://localhost:8000/mcp/tools
 ```
 
 #### Execute Tool
+
 ```bash
 curl -X POST http://localhost:8000/mcp/tools/echo \
   -H "Content-Type: application/json" \
@@ -121,6 +132,7 @@ curl -X POST http://localhost:8000/mcp/tools/echo \
 ```
 
 #### JSON-RPC Request
+
 ```bash
 curl -X POST http://localhost:8000/mcp/rpc \
   -H "Content-Type: application/json" \
@@ -137,14 +149,14 @@ curl -X POST http://localhost:8000/mcp/rpc \
 
 ```typescript
 interface HttpTransportConfig {
-  port: number;                    // Server port
-  host: string;                    // Bind address
-  basePath: string;               // API base path (e.g., '/mcp')
-  cors: CorsConfig;               // CORS settings
-  auth?: HttpAuthConfig;          // Authentication config
-  rateLimit?: RateLimitConfig;    // Rate limiting config
-  security: HttpSecurityConfig;   // Security settings
-  swagger?: SwaggerConfig;        // API documentation config
+  port: number; // Server port
+  host: string; // Bind address
+  basePath: string; // API base path (e.g., '/mcp')
+  cors: CorsConfig; // CORS settings
+  auth?: HttpAuthConfig; // Authentication config
+  rateLimit?: RateLimitConfig; // Rate limiting config
+  security: HttpSecurityConfig; // Security settings
+  swagger?: SwaggerConfig; // API documentation config
 }
 ```
 
@@ -154,10 +166,10 @@ interface HttpTransportConfig {
 interface HttpAuthConfig {
   enabled: boolean;
   type: 'apikey' | 'jwt' | 'bearer' | 'basic';
-  apiKeys?: string[];            // For API key auth
-  jwtSecret?: string;            // For JWT auth
-  jwtExpiration?: string;        // JWT token expiry
-  headerName?: string;           // Auth header name
+  apiKeys?: string[]; // For API key auth
+  jwtSecret?: string; // For JWT auth
+  jwtExpiration?: string; // JWT token expiry
+  headerName?: string; // Auth header name
 }
 ```
 
@@ -166,10 +178,10 @@ interface HttpAuthConfig {
 ```typescript
 interface CorsConfig {
   enabled: boolean;
-  origins: string[];             // Allowed origins
-  methods: string[];             // Allowed methods
-  allowedHeaders: string[];      // Allowed headers
-  credentials: boolean;          // Allow credentials
+  origins: string[]; // Allowed origins
+  methods: string[]; // Allowed methods
+  allowedHeaders: string[]; // Allowed headers
+  credentials: boolean; // Allow credentials
 }
 ```
 
@@ -187,9 +199,9 @@ interface CorsConfig {
 ```typescript
 interface RateLimitConfig {
   enabled: boolean;
-  windowMs: number;              // Time window in milliseconds
-  maxRequests: number;           // Max requests per window
-  message?: string;              // Rate limit message
+  windowMs: number; // Time window in milliseconds
+  maxRequests: number; // Max requests per window
+  message?: string; // Rate limit message
   skipSuccessfulRequests?: boolean;
 }
 ```
@@ -246,12 +258,12 @@ The HTTP MCP server supports both stdio and HTTP transports simultaneously:
 
 ```typescript
 const server = new HttpMcpServer({
-  enableStdio: true,        // Enable stdio transport
+  enableStdio: true, // Enable stdio transport
   primaryTransport: 'http', // Primary transport for tool registration
   http: {
     port: 8000,
     // ... HTTP config
-  }
+  },
 });
 ```
 
@@ -299,21 +311,27 @@ HTTP transport maintains full compatibility with MCP protocol:
 ### Common Issues
 
 #### Port Already in Use
+
 ```bash
 Error: listen EADDRINUSE: address already in use :::8000
 ```
+
 **Solution**: Change port or kill existing process
 
 #### Authentication Failures
+
 ```bash
 401 Unauthorized: Missing authentication header
 ```
+
 **Solution**: Provide correct API key in X-API-Key header
 
 #### CORS Errors
+
 ```bash
 Access-Control-Allow-Origin header is missing
 ```
+
 **Solution**: Configure CORS origins in server config
 
 ### Debug Mode
@@ -326,8 +344,8 @@ const server = HttpMcpServerFactory.createDevelopment({
   logging: {
     level: 'debug',
     format: 'pretty',
-    output: 'console'
-  }
+    output: 'console',
+  },
 });
 ```
 
@@ -367,7 +385,8 @@ const server = HttpMcpServerFactory.createDevelopment({
 
 ## License
 
-This HTTP transport implementation is part of the MCP TypeScript boilerplate project and is licensed under the MIT License.
+This HTTP transport implementation is part of the MCP TypeScript boilerplate
+project and is licensed under the MIT License.
 
 ## Support
 

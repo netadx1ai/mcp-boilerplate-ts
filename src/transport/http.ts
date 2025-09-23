@@ -1,9 +1,9 @@
 /**
  * @fileoverview HTTP Transport for MCP TypeScript
- * 
+ *
  * This module provides HTTP transport implementation for the MCP protocol,
  * enabling REST API communication alongside existing stdio transport.
- * 
+ *
  * Key Features:
  * - JSON-RPC over HTTP POST endpoints
  * - RESTful tool execution endpoints
@@ -11,7 +11,7 @@
  * - Rate limiting and CORS support
  * - OpenAPI/Swagger documentation
  * - Health check and status endpoints
- * 
+ *
  * @author MCP Boilerplate Team
  * @version 0.3.0
  */
@@ -28,7 +28,12 @@ import { createServer, Server as HttpServer } from 'http';
 import { v4 as uuidv4 } from 'uuid';
 
 import { Transport, TransportSendOptions } from '@modelcontextprotocol/sdk/shared/transport.js';
-import { JSONRPCMessage, JSONRPCRequest, JSONRPCResponse, MessageExtraInfo } from '@modelcontextprotocol/sdk/types.js';
+import {
+  JSONRPCMessage,
+  JSONRPCRequest,
+  JSONRPCResponse,
+  MessageExtraInfo,
+} from '@modelcontextprotocol/sdk/types.js';
 
 import {
   HttpTransportConfig,
@@ -40,7 +45,7 @@ import {
   HttpSecurityConfig,
   SwaggerConfig,
   McpTool,
-  ToolResult
+  ToolResult,
 } from '../types/index.js';
 import { createDefaultLogger } from '../utils/logger.js';
 import { Logger } from 'winston';
@@ -57,32 +62,32 @@ const DEFAULT_HTTP_CONFIG: HttpTransportConfig = {
     origins: ['*'],
     methods: ['GET', 'POST', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
-    credentials: false
+    credentials: false,
   },
   auth: {
     enabled: false,
     type: 'apikey' as const,
-    headerName: 'X-API-Key'
+    headerName: 'X-API-Key',
   },
   rateLimit: {
     enabled: true,
     windowMs: 15 * 60 * 1000, // 15 minutes
     maxRequests: 100,
-    message: 'Too many requests from this IP'
+    message: 'Too many requests from this IP',
   },
   security: {
     helmet: true,
     trustProxy: false,
     requestSizeLimit: '10mb',
-    timeout: 30000
+    timeout: 30000,
   },
   swagger: {
     enabled: true,
     path: '/docs',
     title: 'MCP Server API',
     description: 'Model Context Protocol REST API',
-    version: '1.0.0'
-  }
+    version: '1.0.0',
+  },
 };
 
 /**
@@ -95,7 +100,7 @@ interface McpRequest extends Request {
 
 /**
  * HTTP Transport implementation for MCP protocol
- * 
+ *
  * Provides REST API endpoints for JSON-RPC communication and tool execution
  */
 export class HttpTransport implements Transport {
@@ -146,24 +151,23 @@ export class HttpTransport implements Transport {
     return new Promise((resolve, reject) => {
       try {
         this._server = createServer(this._app);
-        
+
         this._server.listen(this._config.port, this._config.host, () => {
           this._isStarted = true;
           this._logger.info('HTTP transport started', {
             host: this._config.host,
             port: this._config.port,
             basePath: this._config.basePath,
-            sessionId: this._sessionId
+            sessionId: this._sessionId,
           });
           resolve();
         });
 
-        this._server.on('error', (error) => {
+        this._server.on('error', error => {
           this._logger.error('HTTP server error', { error: error.message });
           this.onerror?.(error);
           reject(error);
         });
-
       } catch (error) {
         reject(error);
       }
@@ -187,7 +191,7 @@ export class HttpTransport implements Transport {
       return;
     }
 
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       this._server!.close(() => {
         this._isStarted = false;
         this._logger.info('HTTP transport closed');
@@ -213,12 +217,14 @@ export class HttpTransport implements Transport {
 
     // CORS middleware
     if (this._config.cors.enabled) {
-      this._app.use(cors({
-        origin: this._config.cors.origins,
-        methods: this._config.cors.methods,
-        allowedHeaders: this._config.cors.allowedHeaders,
-        credentials: this._config.cors.credentials
-      }));
+      this._app.use(
+        cors({
+          origin: this._config.cors.origins,
+          methods: this._config.cors.methods,
+          allowedHeaders: this._config.cors.allowedHeaders,
+          credentials: this._config.cors.credentials,
+        })
+      );
     }
 
     // Rate limiting
@@ -229,26 +235,32 @@ export class HttpTransport implements Transport {
         message: { error: this._config.rateLimit.message },
         standardHeaders: true,
         legacyHeaders: false,
-        skip: (req) => {
-          if (this._config.rateLimit?.skipSuccessfulRequests && 
-              req.method === 'GET' && 
-              req.path.endsWith('/health')) {
+        skip: req => {
+          if (
+            this._config.rateLimit?.skipSuccessfulRequests &&
+            req.method === 'GET' &&
+            req.path.endsWith('/health')
+          ) {
             return true;
           }
           return false;
-        }
+        },
       });
       this._app.use(limiter);
     }
 
     // Body parsing middleware
-    this._app.use(express.json({ 
-      limit: this._config.security.requestSizeLimit 
-    }));
-    this._app.use(express.urlencoded({ 
-      extended: true, 
-      limit: this._config.security.requestSizeLimit 
-    }));
+    this._app.use(
+      express.json({
+        limit: this._config.security.requestSizeLimit,
+      })
+    );
+    this._app.use(
+      express.urlencoded({
+        extended: true,
+        limit: this._config.security.requestSizeLimit,
+      })
+    );
 
     // Request context middleware
     this._app.use(this._createRequestContext.bind(this));
@@ -297,25 +309,27 @@ export class HttpTransport implements Transport {
           title: this._config.swagger.title,
           description: this._config.swagger.description,
           version: this._config.swagger.version,
-          contact: this._config.swagger.contact
+          contact: this._config.swagger.contact,
         },
         servers: [
           {
             url: `http://${this._config.host}:${this._config.port}${this._config.basePath}`,
-            description: 'Development server'
-          }
+            description: 'Development server',
+          },
         ],
         components: {
-          securitySchemes: this._config.auth?.enabled ? {
-            ApiKeyAuth: {
-              type: 'apiKey',
-              in: 'header',
-              name: this._config.auth.headerName || 'X-API-Key'
-            }
-          } : undefined
-        }
+          securitySchemes: this._config.auth?.enabled
+            ? {
+                ApiKeyAuth: {
+                  type: 'apiKey',
+                  in: 'header',
+                  name: this._config.auth.headerName || 'X-API-Key',
+                },
+              }
+            : undefined,
+        },
       },
-      apis: [__filename] // This file contains JSDoc comments for API docs
+      apis: [__filename], // This file contains JSDoc comments for API docs
     };
 
     const specs = swaggerJsdoc(swaggerOptions);
@@ -324,7 +338,7 @@ export class HttpTransport implements Transport {
       swaggerUi.serve,
       swaggerUi.setup(specs, {
         explorer: true,
-        customCss: '.swagger-ui .topbar { display: none }'
+        customCss: '.swagger-ui .topbar { display: none }',
       })
     );
   }
@@ -338,7 +352,7 @@ export class HttpTransport implements Transport {
       res.status(404).json({
         error: 'Not Found',
         message: `Endpoint ${req.method} ${req.originalUrl} not found`,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     });
 
@@ -349,7 +363,7 @@ export class HttpTransport implements Transport {
         stack: error.stack,
         requestId: req.context?.requestId,
         method: req.method,
-        url: req.originalUrl
+        url: req.originalUrl,
       });
 
       const statusCode = error.statusCode || 500;
@@ -359,7 +373,7 @@ export class HttpTransport implements Transport {
         error: 'Internal Server Error',
         message,
         requestId: req.context?.requestId,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     });
   }
@@ -378,7 +392,7 @@ export class HttpTransport implements Transport {
       query: req.query as Record<string, string>,
       body: req.body,
       requestId,
-      timestamp
+      timestamp,
     };
 
     // Add correlation ID header to response
@@ -392,19 +406,19 @@ export class HttpTransport implements Transport {
    */
   private _authMiddleware(req: McpRequest, res: Response, next: NextFunction): void {
     const auth = this._config.auth!;
-    
+
     // Skip auth for health check and docs
     if (req.path.endsWith('/health') || req.path.startsWith('/docs')) {
       return next();
     }
 
     const authHeader = req.headers[auth.headerName?.toLowerCase() || 'x-api-key'] as string;
-    
+
     if (!authHeader) {
       res.status(401).json({
         error: 'Unauthorized',
         message: 'Missing authentication header',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
       return;
     }
@@ -438,20 +452,20 @@ export class HttpTransport implements Transport {
     } catch (error) {
       this._logger.warn('Authentication failed', {
         error: error instanceof Error ? error.message : String(error),
-        requestId: req.context?.requestId
+        requestId: req.context?.requestId,
       });
 
       res.status(401).json({
         error: 'Unauthorized',
         message: 'Authentication failed',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     }
   }
 
   /**
    * Handle health check requests
-   * 
+   *
    * @swagger
    * /health:
    *   get:
@@ -467,7 +481,7 @@ export class HttpTransport implements Transport {
       sessionId: this._sessionId,
       uptime: process.uptime(),
       memory: process.memoryUsage(),
-      version: process.version
+      version: process.version,
     };
 
     res.json(health);
@@ -475,7 +489,7 @@ export class HttpTransport implements Transport {
 
   /**
    * Handle server info requests
-   * 
+   *
    * @swagger
    * /info:
    *   get:
@@ -497,8 +511,8 @@ export class HttpTransport implements Transport {
         info: `${this._config.basePath}/info`,
         rpc: `${this._config.basePath}/rpc`,
         tools: `${this._config.basePath}/tools`,
-        docs: this._config.swagger?.enabled ? this._config.swagger.path : undefined
-      }
+        docs: this._config.swagger?.enabled ? this._config.swagger.path : undefined,
+      },
     };
 
     res.json(info);
@@ -506,7 +520,7 @@ export class HttpTransport implements Transport {
 
   /**
    * Handle JSON-RPC requests
-   * 
+   *
    * @swagger
    * /rpc:
    *   post:
@@ -524,15 +538,15 @@ export class HttpTransport implements Transport {
   private async _handleJsonRpc(req: McpRequest, res: Response): Promise<void> {
     try {
       const message = req.body as any;
-      
+
       if (!message || !message.jsonrpc || !message.method) {
         res.status(400).json({
           jsonrpc: '2.0',
           error: {
             code: -32600,
-            message: 'Invalid Request'
+            message: 'Invalid Request',
           },
-          id: null
+          id: null,
         });
         return;
       }
@@ -540,8 +554,8 @@ export class HttpTransport implements Transport {
       // Forward to MCP message handler
       this.onmessage?.(message as JSONRPCMessage, {
         requestInfo: {
-          headers: req.headers as Record<string, string>
-        }
+          headers: req.headers as Record<string, string>,
+        },
       });
 
       // For HTTP transport, we handle the response through Express
@@ -549,29 +563,28 @@ export class HttpTransport implements Transport {
       res.status(202).json({
         jsonrpc: '2.0',
         result: { accepted: true },
-        id: message.id
+        id: message.id,
       });
-
     } catch (error) {
-      this._logger.error('JSON-RPC handling error', { 
+      this._logger.error('JSON-RPC handling error', {
         error: error instanceof Error ? error.message : String(error),
-        requestId: req.context?.requestId 
+        requestId: req.context?.requestId,
       });
 
       res.status(500).json({
         jsonrpc: '2.0',
         error: {
           code: -32603,
-          message: 'Internal error'
+          message: 'Internal error',
         },
-        id: req.body?.id || null
+        id: req.body?.id || null,
       });
     }
   }
 
   /**
    * Handle list tools requests
-   * 
+   *
    * @swagger
    * /tools:
    *   get:
@@ -587,19 +600,19 @@ export class HttpTransport implements Transport {
       category: tool.category,
       version: tool.version,
       parameters: {},
-      examples: tool.examples
+      examples: tool.examples,
     }));
 
     res.json({
       tools,
       count: tools.length,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
   /**
    * Handle tool execution requests
-   * 
+   *
    * @swagger
    * /tools/{name}:
    *   post:
@@ -630,7 +643,7 @@ export class HttpTransport implements Transport {
           error: 'Tool Not Found',
           message: `Tool '${toolName}' is not available`,
           availableTools: Array.from(this._tools.keys()),
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
         return;
       }
@@ -643,30 +656,27 @@ export class HttpTransport implements Transport {
         statusCode: result.success ? 200 : 400,
         headers: {
           'Content-Type': 'application/json',
-          'X-Execution-Time': `${executionTime}ms`
+          'X-Execution-Time': `${executionTime}ms`,
         },
         body: result,
         metadata: {
           requestId: req.context!.requestId,
-          executionTime
-        }
+          executionTime,
+        },
       };
 
-      res.status(response.statusCode)
-         .set(response.headers)
-         .json(response.body);
-
+      res.status(response.statusCode).set(response.headers).json(response.body);
     } catch (error) {
       this._logger.error('Tool execution error', {
         error: error instanceof Error ? error.message : String(error),
         tool: req.params.name,
-        requestId: req.context?.requestId
+        requestId: req.context?.requestId,
       });
 
       res.status(500).json({
         error: 'Tool Execution Failed',
         message: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     }
   }
@@ -702,8 +712,8 @@ export class HttpTransportFactory {
         apiKeys: authConfig.apiKeys,
         jwtSecret: authConfig.jwtSecret,
         jwtExpiration: authConfig.jwtExpiration,
-        headerName: authConfig.headerName
-      }
+        headerName: authConfig.headerName,
+      },
     });
   }
 
@@ -714,19 +724,19 @@ export class HttpTransportFactory {
         helmet: true,
         trustProxy: true,
         requestSizeLimit: '1mb',
-        timeout: 10000
+        timeout: 10000,
       },
       auth: {
         enabled: true,
         type: 'apikey',
-        headerName: 'X-API-Key'
+        headerName: 'X-API-Key',
       },
       rateLimit: {
         enabled: true,
         windowMs: 900000,
         maxRequests: 100,
-        message: 'Too many requests'
-      }
+        message: 'Too many requests',
+      },
     });
   }
 }

@@ -9,13 +9,11 @@
  */
 // Core server exports
 export { BaseMcpServer } from './core/server.js';
-export { HttpMcpServer } from './transport/http-server.js';
 // Transport layer exports
-export { HttpTransport, createHttpTransport, HttpTransportFactory, TransportFactory, createTransportConfig, validateTransportConfig, TRANSPORT_TYPES, DEFAULT_HTTP_PORTS, HTTP_STATUS_CODES, HTTP_METHODS, CORS_ORIGINS, AUTH_HEADERS, RATE_LIMIT_WINDOWS, TRANSPORT_PRESETS } from './transport/index.js';
+export { HttpTransport, createHttpTransport, HttpTransportFactory, HttpMcpServer, createHttpMcpServer, HttpMcpServerFactory, TRANSPORT_TYPES, DEFAULT_HTTP_PORTS, HTTP_STATUS_CODES, HTTP_METHODS, CORS_ORIGINS, AUTH_HEADERS, RATE_LIMIT_WINDOWS, TRANSPORT_PRESETS, } from './transport/index.js';
 // Utility exports
 export { createDefaultConfig, validateConfig } from './utils/config.js';
 export { createDefaultLogger } from './utils/logger.js';
-export { createMetricsCollector } from './utils/metrics.js';
 // Type guards and validators
 export { isMcpTool, isToolResult, isMcpBoilerplateError } from './types/index.js';
 // Constants
@@ -38,7 +36,7 @@ export const METADATA = {
     license: 'MIT',
     engines: {
         node: '>=18.0.0',
-        npm: '>=8.0.0'
+        npm: '>=8.0.0',
     },
     keywords: [
         'mcp',
@@ -50,8 +48,8 @@ export const METADATA = {
         'server',
         'boilerplate',
         'http',
-        'transport'
-    ]
+        'transport',
+    ],
 };
 /**
  * Quick start factory for common use cases
@@ -61,119 +59,55 @@ export class McpBoilerplateFactory {
      * Create a development MCP server with HTTP transport
      */
     static createDevelopmentServer(config) {
-        return new HttpMcpServer({
+        const { HttpMcpServerFactory } = require('./transport/http-server.js');
+        return HttpMcpServerFactory.createDevelopment({
             name: config.name,
             version: '1.0.0',
             description: config.description,
-            environment: 'development',
-            enableStdio: false,
-            primaryTransport: 'http',
             http: {
                 port: config.port || 8000,
                 host: 'localhost',
                 basePath: '/mcp',
-                cors: {
-                    enabled: true,
-                    origins: ['*'],
-                    methods: ['GET', 'POST', 'OPTIONS'],
-                    allowedHeaders: ['Content-Type', 'Authorization'],
-                    credentials: false
-                },
-                auth: {
-                    enabled: false,
-                    type: 'apikey',
-                    headerName: 'X-API-Key'
-                },
-                rateLimit: {
-                    enabled: false,
-                    windowMs: 900000,
-                    maxRequests: 100
-                },
-                security: {
-                    helmet: false,
-                    trustProxy: false,
-                    requestSizeLimit: '10mb',
-                    timeout: 30000
-                },
-                swagger: {
-                    enabled: true,
-                    path: '/docs',
-                    title: `${config.name} API`,
-                    description: config.description,
-                    version: '1.0.0'
-                }
-            }
+            },
         });
     }
     /**
      * Create a production MCP server with security enabled
      */
     static createProductionServer(config) {
-        return new HttpMcpServer({
+        const { HttpMcpServerFactory } = require('./transport/http-server.js');
+        return HttpMcpServerFactory.createWithAuth({
             name: config.name,
             version: '1.0.0',
             description: config.description,
-            environment: 'production',
-            enableStdio: false,
-            primaryTransport: 'http',
             http: {
                 port: config.port || 8080,
                 host: '0.0.0.0',
                 basePath: '/mcp',
-                cors: {
-                    enabled: true,
-                    origins: [],
-                    methods: ['POST'],
-                    allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
-                    credentials: false
-                },
-                auth: {
-                    enabled: true,
-                    type: 'apikey',
-                    apiKeys: config.apiKeys,
-                    headerName: 'X-API-Key'
-                },
-                rateLimit: {
-                    enabled: true,
-                    windowMs: 900000,
-                    maxRequests: 100,
-                    message: 'Too many requests'
-                },
-                security: {
-                    helmet: true,
-                    trustProxy: true,
-                    requestSizeLimit: '1mb',
-                    timeout: 10000
-                },
-                swagger: {
-                    enabled: false,
-                    path: '/docs',
-                    title: 'MCP Production API',
-                    description: 'Model Context Protocol Production Server',
-                    version: '1.0.0'
-                }
-            }
-        });
+            },
+        }, config.apiKeys);
     }
     /**
      * Create a simple HTTP transport for custom use cases
      */
     static createHttpTransport(config) {
-        if (config.enableAuth && !config.apiKeys?.length) {
-            throw new Error('API keys required when authentication is enabled');
-        }
-        return new HttpTransport({
+        const { createHttpTransport } = require('./transport/http.js');
+        return createHttpTransport({
             port: config.port || 8000,
             host: config.host || 'localhost',
             basePath: '/mcp',
-            auth: config.enableAuth ? {
-                enabled: true,
-                type: 'apikey',
-                apiKeys: config.apiKeys || [],
-                headerName: 'X-API-Key'
-            } : {
-                enabled: false
-            }
+            auth: config.enableAuth
+                ? {
+                    enabled: true,
+                    type: 'apikey',
+                    apiKeys: config.apiKeys || [],
+                    headerName: 'X-API-Key',
+                }
+                : {
+                    enabled: false,
+                    type: 'apikey',
+                    headerName: 'X-API-Key',
+                },
         });
     }
 }
@@ -189,7 +123,7 @@ export const FEATURES = {
     SWAGGER_DOCS: true,
     METRICS: true,
     TELEMETRY: true,
-    HEALTH_CHECKS: true
+    HEALTH_CHECKS: true,
 };
 /**
  * Environment detection utilities
@@ -198,6 +132,6 @@ export const ENVIRONMENT = {
     isDevelopment: () => process.env.NODE_ENV === 'development',
     isProduction: () => process.env.NODE_ENV === 'production',
     isTest: () => process.env.NODE_ENV === 'test',
-    getNodeEnv: () => process.env.NODE_ENV || 'development'
+    getNodeEnv: () => process.env.NODE_ENV || 'development',
 };
 //# sourceMappingURL=index.js.map

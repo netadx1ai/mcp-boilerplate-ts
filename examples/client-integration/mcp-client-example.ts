@@ -103,12 +103,10 @@ class McpMultiClient extends EventEmitter {
   async connectAll(): Promise<void> {
     console.log('🔌 Connecting to MCP servers...\n');
 
-    const connectionPromises = SERVER_CONFIGS.map(config => 
-      this.connectToServer(config)
-    );
+    const connectionPromises = SERVER_CONFIGS.map(config => this.connectToServer(config));
 
     const results = await Promise.allSettled(connectionPromises);
-    
+
     const successful = results.filter(r => r.status === 'fulfilled').length;
     const failed = results.filter(r => r.status === 'rejected').length;
 
@@ -128,8 +126,8 @@ class McpMultiClient extends EventEmitter {
 
       // Create client
       const client = new Client({
-        name: "mcp-multi-client",
-        version: "1.0.0"
+        name: 'mcp-multi-client',
+        version: '1.0.0',
       });
 
       // Create transport
@@ -141,7 +139,7 @@ class McpMultiClient extends EventEmitter {
 
       // Connect with timeout
       const connectionPromise = client.connect(transport);
-      const timeoutPromise = new Promise((_, reject) => 
+      const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Connection timeout')), this.connectionTimeout)
       );
 
@@ -166,9 +164,10 @@ class McpMultiClient extends EventEmitter {
 
       console.log(`✅ Connected to ${config.name} (${tools.length} tools available)`);
       this.emit('serverConnected', { name: config.name, tools });
-
     } catch (error) {
-      console.error(`❌ Failed to connect to ${config.name}: ${error instanceof Error ? error.message : String(error)}`);
+      console.error(
+        `❌ Failed to connect to ${config.name}: ${error instanceof Error ? error.message : String(error)}`
+      );
       this.emit('serverError', { name: config.name, error });
     }
   }
@@ -191,11 +190,7 @@ class McpMultiClient extends EventEmitter {
   /**
    * Execute a tool on a specific server
    */
-  async executeTool(
-    serverName: string,
-    toolName: string,
-    args: any = {}
-  ): Promise<ToolResult> {
+  async executeTool(serverName: string, toolName: string, args: any = {}): Promise<ToolResult> {
     const startTime = Date.now();
 
     try {
@@ -232,7 +227,6 @@ class McpMultiClient extends EventEmitter {
         result: result.content,
         executionTime: Date.now() - startTime,
       };
-
     } catch (error) {
       return {
         success: false,
@@ -245,7 +239,7 @@ class McpMultiClient extends EventEmitter {
   /**
    * Get server status
    */
-  getServerStatus(): Array<{name: string; connected: boolean; tools: number}> {
+  getServerStatus(): Array<{ name: string; connected: boolean; tools: number }> {
     return Array.from(this.servers.values()).map(server => ({
       name: server.name,
       connected: server.connected,
@@ -326,7 +320,6 @@ async function exampleNewsWorkflow(client: McpMultiClient): Promise<void> {
     } else {
       console.log(`❌ Trending topics failed: ${trendingResult.error}`);
     }
-
   } catch (error) {
     console.error('💥 News workflow error:', error);
   }
@@ -367,7 +360,6 @@ async function exampleTemplateWorkflow(client: McpMultiClient): Promise<void> {
     } else {
       console.log(`❌ Template generation failed: ${generateResult.error}`);
     }
-
   } catch (error) {
     console.error('💥 Template workflow error:', error);
   }
@@ -416,7 +408,6 @@ async function exampleAnalyticsWorkflow(client: McpMultiClient): Promise<void> {
     } else {
       console.log(`❌ Analytics query failed: ${queryResult.error}`);
     }
-
   } catch (error) {
     console.error('💥 Analytics workflow error:', error);
   }
@@ -470,7 +461,6 @@ async function exampleBasicWorkflow(client: McpMultiClient): Promise<void> {
     } else {
       console.log(`❌ Health check failed: ${healthResult.error}`);
     }
-
   } catch (error) {
     console.error('💥 Basic workflow error:', error);
   }
@@ -483,12 +473,12 @@ async function exploreServers(client: McpMultiClient): Promise<void> {
   console.log('🔍 === Server Explorer ===\n');
 
   const servers = client.getServerStatus();
-  
+
   for (const server of servers) {
     if (server.connected) {
       console.log(`\n📡 Server: ${server.name}`);
       console.log(`🛠️ Tools available: ${server.tools}`);
-      
+
       try {
         // Get server status if available
         const statusResult = await client.executeTool(server.name, 'get_server_status', {
@@ -522,7 +512,7 @@ async function performanceTest(client: McpMultiClient): Promise<void> {
     { server: 'analytics-server', tool: 'get_server_status', args: {} },
   ];
 
-  const results: Array<{test: string; success: boolean; time: number}> = [];
+  const results: Array<{ test: string; success: boolean; time: number }> = [];
 
   for (const testCase of testCases) {
     const testName = `${testCase.server}:${testCase.tool}`;
@@ -544,9 +534,10 @@ async function performanceTest(client: McpMultiClient): Promise<void> {
 
   // Performance summary
   const successful = results.filter(r => r.success);
-  const avgTime = successful.length > 0 
-    ? Math.round(successful.reduce((sum, r) => sum + r.time, 0) / successful.length)
-    : 0;
+  const avgTime =
+    successful.length > 0
+      ? Math.round(successful.reduce((sum, r) => sum + r.time, 0) / successful.length)
+      : 0;
 
   console.log(`\n📊 Performance Summary:`);
   console.log(`   Successful: ${successful.length}/${results.length}`);
@@ -578,7 +569,7 @@ async function errorHandlingExample(client: McpMultiClient): Promise<void> {
     a: 10,
     b: 0, // Division by zero
   });
-  
+
   if (invalidArgsResult.success) {
     console.log('✅ Tool handled error gracefully');
   } else {
@@ -598,7 +589,7 @@ async function runDemo(): Promise<void> {
 
   try {
     console.log('🚀 MCP Multi-Client Demo Starting\n');
-    console.log('=' .repeat(60));
+    console.log('='.repeat(60));
 
     // Connect to all servers
     await client.connectAll();
@@ -635,7 +626,6 @@ async function runDemo(): Promise<void> {
       await client.disconnectAll();
       process.exit(0);
     }, 30000);
-
   } catch (error) {
     console.error('\n💥 Demo failed:', error);
     await client.disconnectAll();
@@ -664,13 +654,12 @@ async function interactiveMode(): Promise<void> {
     // For this example, we'll just show the structure
     console.log('💡 Interactive mode structure implemented');
     console.log('📝 To make fully interactive, integrate with readline for user input');
-    
+
     // Simulate some interactive usage
     await new Promise(resolve => setTimeout(resolve, 5000));
-    
+
     console.log('\n🔄 Interactive session ending...');
     await client.disconnectAll();
-
   } catch (error) {
     console.error('💥 Interactive mode error:', error);
     await client.disconnectAll();
@@ -693,11 +682,11 @@ async function main(): Promise<void> {
     case 'demo':
       await runDemo();
       break;
-    
+
     case 'interactive':
       await interactiveMode();
       break;
-    
+
     case 'help':
       console.log('MCP Multi-Client Example\n');
       console.log('Usage: npm run client [mode]\n');
